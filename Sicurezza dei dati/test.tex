@@ -1,0 +1,241 @@
+\subsubsection{DOMANDA 1}
+Descrivere il significato del seguente script BitCoin:
+
+\begin{center}
+    \texttt{HASH160 9af61346ce0aa2dffcf697352b4b704c84dcbaff EQUAL}
+\end{center}
+
+\subsubsection{DOMANDA 2}
+Descrivere cosa realizza il seguente smart contract in Solidity:
+\begin{lstlisting}[language=Solidity]
+pragma solidity >=0.4.24 <0.6.0;
+
+contract ReceiverPays {
+    address owner = msg.sender;
+
+    mapping(uint256 => bool) usedNonces;
+
+    constructor() public payable {}
+
+    function claimPayment(uint256 amount, uint256 nonce, bytes memory signature) public {
+        require(!usedNonces[nonce]);
+        usedNonces[nonce] = true;
+
+        bytes32 message = prefixed(keccak256(abi.encodePacked(msg.sender, amount, nonce, this)));
+
+        require(recoverSigner(message, signature) == owner);
+
+        msg.sender.transfer(amount);
+    }
+
+    function kill() public {
+        require(msg.sender == owner);
+        selfdestruct(msg.sender);
+    }
+
+    function splitSignature(bytes memory sig)
+        internal
+        pure
+        returns (uint8 v, bytes32 r, bytes32 s)
+    {
+        require(sig.length == 65);
+
+        r := mload(add(sig, 32))
+        s := mload(add(sig, 64))
+        v := byte(0, mload(add(sig, 96)))
+        
+        return (v, r, s);
+    }
+
+    function recoverSigner(bytes32 message, bytes memory sig)
+        internal
+        pure
+        returns (address)
+    {
+        (uint8 v, bytes32 r, bytes32 s) = splitSignature(sig);
+
+        return ecrecover(message, v, r, s);
+    }
+
+    function prefixed(bytes32 hash) internal pure returns (bytes32) {
+        return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash));
+    }
+}
+
+\end{lstlisting}
+
+\subsubsection{DOMANDA 3}
+Descrivere cosa realizza il seguente chaincode in Go:
+\begin{lstlisting}[language=Go]
+package main
+
+import (
+    "fmt"
+
+    "github.com/hyperledger/fabric/core/chaincode/shim"
+    "github.com/hyperledger/fabric/protos/peer"
+)
+
+type SampleChaincode struct {
+
+}
+
+func (t *SampleChaincode) Init(stub shim.ChaincodeStubInterface) peer.Response {
+    args := stub.GetStringArgs()
+    if len(args) != 2 {
+        return shim.Error("Incorrect arguments. Expecting a key and a value")
+    }
+
+    err := stub.PutState(args[0], []byte(args[1]))
+    if err != nil {
+        return shim.Error(fmt.Sprintf("Failed to create asset: %s", args[0]))
+    }
+    return shim.Success(nil)
+}
+
+func (t *SampleChaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
+    fn, args := stub.GetFunctionAndParameters()
+
+    var result string
+    var err error
+    if fn == "set" {
+        result, err = set(stub, args)
+    } else {
+        result, err = get(stub, args)
+    }
+    if err != nil {
+        return shim.Error(err.Error())
+    }
+
+    return shim.Success([]byte(result))
+}
+
+func set(stub shim.ChaincodeStubInterface, args []string) (string, error) {
+    if len(args) != 2 {
+        return "", fmt.Errorf("Incorrect arguments. Expecting a key and a value")
+    }
+
+    err := stub.PutState(args[0], []byte(args[1]))
+    if err != nil {
+        return "", fmt.Errorf("Failed to set asset: %s", args[0])
+    }
+    return args[1], nil
+}
+
+func get(stub shim.ChaincodeStubInterface, args []string) (string, error) {
+    if len(args) != 1 {
+        return "", fmt.Errorf("Incorrect arguments. Expecting a key")
+    }
+
+    value, err := stub.GetState(args[0])
+    if err != nil {
+        return "", fmt.Errorf("Failed to get asset: %s with error: %s", args[0], err)
+    }
+    if value == nil {
+        return "", fmt.Errorf("Asset not found: %s", args[0])
+    }
+    return string(value), nil
+}
+
+func main() {
+    err := shim.Start(new(SampleChaincode))
+    if err != nil {
+        fmt.Println("Could not start SampleChaincode")
+    } else {
+        fmt.Println("SampleChaincode successfully started")
+    }
+}
+
+\end{lstlisting}
+
+\subsubsection{DOMANDA 4}
+Quale vulnerabilità è presente in questo smart contract in Solidity? Descrivere una possibile soluzione:
+\begin{lstlisting}[language=Solidity]
+// library contract
+contract FibonacciLib {
+    uint public start;
+    uint public calculatedFibNumber;
+    function setStart(uint _start) public {
+        start = _start;
+    }
+    function setFibonacci(uint n) public {
+        calculatedFibNumber = fibonacci(n);
+    }
+    function fibonacci(uint n) internal returns (uint) {
+        if (n == 0) return start;
+        else if (n == 1) return start + 1;
+        else return fibonacci(n - 1) + fibonacci(n - 2);
+    }
+}
+
+contract FibonacciBalance {
+    address public fibonacciLibrary;
+    uint public calculatedFibNumber;
+    uint public start = 3;    
+    uint public withdrawalCounter;
+    bytes4 constant fibSig = bytes4(sha3("setFibonacci(uint256)"));
+    
+    constructor(address _fibonacciLibrary) public payable {
+        fibonacciLibrary = _fibonacciLibrary;
+    }
+    function withdraw() {
+        withdrawalCounter += 1;
+        require(fibonacciLibrary.delegatecall(fibSig, withdrawalCounter));
+        msg.sender.transfer(calculatedFibNumber * 1 ether);
+    }
+    
+    function() public {
+        require(fibonacciLibrary.delegatecall(msg.data));
+    }
+}
+
+\end{lstlisting}
+\clearpage
+\subsubsection{DOMANDA 5}
+Descrivere il seguente chaincode go:
+\begin{lstlisting}
+package main
+
+import (  
+    "fmt"
+    "time"
+)
+
+func numbers(c1 chan int, done chan bool) {  
+    for i := 1; i <= 5; i++ {
+        time.Sleep(20 * time.Millisecond)
+        c1 <- i
+    }
+    done <- true
+}
+func alphabets(c2 chan string, done chan bool) {  
+    for i := 'a'; i <= 'e'; i++ {
+        time.Sleep(40 * time.Millisecond)
+        c2 <- string(i)
+    }
+    done <- true
+}
+func main() {  
+    c1 := make(chan int, 2)
+    c2 := make(chan string, 2)
+    done := make(chan bool)
+    go numbers(c1, done)
+    go alphabets(c2, done)
+    go func() {
+        for i := 1; i <= 5; i++ {
+            fmt.Println(<-c1)
+        }
+    }()
+    go func() {
+        for i := 1; i <= 5; i++ {
+            fmt.Println(<-c2)
+        }
+    }()
+    
+    for i := 0; i < 2; i++ {
+        <-done
+    }
+    fmt.Println("main terminated")
+}
+
+\end{lstlisting}

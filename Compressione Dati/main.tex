@@ -1,0 +1,90 @@
+\documentclass{book}
+\usepackage[margin=3cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[italian]{babel}
+\usepackage{graphicx}
+\usepackage{comment}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{mdframed}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{textcomp} % For TS1.
+\usepackage{multicol}
+\usepackage{amsmath}
+\usepackage{amssymb} 
+\usepackage{listings}
+\lstset{basicstyle=\ttfamily\footnotesize,breaklines=true}
+% per i link
+\usepackage{hyperref}
+\hypersetup{
+	colorlinks   = true,    % Colours links instead of ugly boxes
+	urlcolor     = blue,    % Colour for external hyperlinks
+	linkcolor    = black,    % Colour of internal links
+	citecolor    = red      % Colour of citations
+}
+\usepackage{fancyhdr}
+\usepackage{multirow}
+\usepackage{colortbl}
+\usepackage{csquotes}
+\usepackage[bottom]{footmisc}
+\usepackage{svg}
+\svgpath{{./Images/}}
+\usepackage{placeins}
+\pagestyle{fancy}
+\renewcommand{\chaptermark}[1]{%
+\markboth{\thechapter.\ #1}{}}
+\fancyhead[LE,RO]{}
+
+\setlength{\parindent}{0em}
+
+\graphicspath{./Images}
+
+
+\title{
+\includegraphics[width=29em]{Images/logo.jpg} \textbf{Appunti del corso di Compressione dati}}
+\author{}
+\date{A.A. 2021/2022}
+
+
+\begin{document}
+
+
+
+\let\cleardoublepage\clearpage
+\maketitle
+
+\leavevmode\thispagestyle{empty}\newpage %blank page
+
+\tableofcontents
+\let\cleardoublepage\clearpage
+
+\include{cap0}
+\include{cap1}
+\include{cap2}
+\include{cap3}
+\include{cap4}
+\include{cap5}
+\include{cap6}
+\include{cap7}
+
+
+
+\end{document}
+
+\begin{comment}
+
+% ---------------------- FIGURE ---------------------
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=6cm]{./Images/cap1/2.3.comunicazione.png}
+    \caption{Esempio di comunicazione}
+    \label{fig:image2.3}
+\end{figure}
+
+% --------------- FRAME GRIGIO -----------------------
+\begin{mdframed}[backgroundcolor=gray!20,shadow=false]
+
+\end{mdframed}
+
+\end{comment}

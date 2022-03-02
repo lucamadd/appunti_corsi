@@ -1,0 +1,78 @@
+\chapter{Compressione di video}
+Gli algoritmi principali per la compressione di video sono quelli della famiglia di standard MPEG. La prima standardizzazione è partita nel 1992 con MPEG-1 per immagini digitali in movimento, ed era stato progettato per una qualità di uscita da videoregistratore (352x240 per NTSC) fino a 1.2 Mbps. MPEG-2 è stato progettato invece per comprimere i segnali di qualità televisiva digitale da 4 a 6 Mbps. Sia MPEG-1 che MPEG-2 si avvantaggiano di \textbf{ridondanza spaziale}, che consiste nella correlazione che c'è all'interno di un'immagine tra un pixel e i pixel vicini, e di \textbf{ridondanza temporale}, data dal fatto che due frame consecutivi hanno la maggioranza dei pixel correlati.
+
+\vspace{5mm}
+
+Nel 1988 l'ISO-IEC decise di sviluppare uno standard per la compressione e la rappresentazione di video digitali e dell'audio ad esso associato che fosse adatto alla memorizzazione su dispositivi di memoria di massa, come dischi ottici, e alla trasmissione su canali di telecomunicazione (ISDN, LAN, TV). La nascita di uno standard era necessaria sia per assicurare l'interoperabilità tra diversi sistemi, che per offrire una garanzia sia ai fornitori che agli utenti di prodotti multimediali. Per raggiungere questo obiettivo nacque il \textit{Moving Picture Expert Group} (MPEG).
+
+\section{MPEG-1 e MPEG-2}
+MPEG-1 come detto in precedenza è nato per la diffusione di contenuti multimediali tramite CD-ROM a singola velocità, esiste infatti una modalità che permette di limitare il bit rate a 1.5 Mbps, ovvero la velocità di un videoregistratore. I limiti di MPEG-1 sono principalmente l'assenza di modalità interlacciata e l'assenza di rilevazione di errori e perdita di informazioni che possono avvenire durante la trasmissione.
+
+La modalità interlacciata è invece disponibile su MPEG-2, che tra l'altro permette anche il trasporto di più flussi (video e audio) su un canale non affidabile e soggetto a perdita di informazione. La parte video di MPEG-2 venne completata nel 1993 ma è stato standardizzato solamente a partire dal 1995. Siccome le applicazioni di questo standard sono molteplici, si è pensato di definire dei profili ben precisi che individuano univocamente delle modalità operative. Queste modalità permettono che un flusso sia visto da più utenti con risoluzioni e qualità diverse a seconda delle caratteristiche del canale trasmissivo e del ricevitore: in questo modo le nuove applicazioni rimangono compatibili con i vecchi apparati.
+
+\section{Funzionamento}
+MPEG si basa su un principio secondo il quale il valore di un pixel di un'immagine può essere predetto tramite i pixel adiacenti (con tecniche di compressione intraframe), e tramite i pixel di un frame vicino temporalmente (con tecniche di compressione interframe). In alcuni casi, come ad esempio un cambio di scena in una sequenza, la correlazione temporale tra pixel corrispondenti di frame successivi è molto piccola o inesistente: in questo caso viene utilizzata la correlazione spaziale per ottenere una compressione efficiente.
+
+MPEG utilizza la DCT su blocchi di 8x8 pixel per sfruttare la correlazione spaziale tra pixel vicini della stessa immagine; tuttavia se la correlazione tra pixel di immagini vicine è alta, ovvero ci sono due frame consecutivi molto simili o quasi identici, si preferisce usare tecniche di codifica interframe di tipo DPCM (Differential PCM) che impiegano una predizione temporale con compensazione del moto tra frame. Per ottenere una compressione elevata, MPEG usa uno schema di codifica che è una combinazione adattiva di tecniche di predizione temporale con compensazione del moto seguite da una codifica con trasformata DCT delle rimanenti informazioni spaziali: si ottiene in pratica una codifica ibrida video DPCM/DCT.
+
+\vspace{5mm}
+
+La figura seguente mostra un esempio di codifica DPCM: per codificare il campione N-esimo si fa una predizione basata sugli N-1 campioni precedenti già codificati, quindi si codifica solo la differenza tra la predizione e il campione reale. Il decodificatore predice il campione N-esimo dai campioni precedenti già codificati e somma la differenza trovata nel passo precedente, ottenendo lo stesso valore di partenza. Utilizzando questa tecnica viene ridotto l'intervallo di variabilità del valore da codificare, in modo che sia necessaria una quantità di bit inferiore per codificarlo.
+
+\begin{figure}[htbp!]
+  \centering
+  \includesvg[inkscapelatex=false, width = 0.6 \textwidth]{7.1}
+\end{figure}
+\FloatBarrier
+
+Di seguito invece possiamo vedere la struttura diagrammatica del funzionamento di MPEG. Il video che deve essere compresso passa attraverso una fase di \textbf{Preprocessing}, che prepara i dati per i passi successivi. Tutte le fasi sono individuate da algoritmi che le implementano in modo diverso: infatti MPEG è un open standard come JPEG, ovvero definisce come deve essere il flusso di dati dopo la compressione, ma non specifica come e con quali algoritmi deve essere compresso. La fase di \textbf{Motion Estimation} serve per costruire una predizione. Il frame viene diviso in più blocchi e per ogni blocco del frame precedente viene trovata la migliore approssimazione possibile. In particolare in scene di movimento, se nel frame successivo individuo i blocchi adiacenti al blocco selezionato, con buona probabilità i pixel saranno gli stessi del blocco selezionato spostati in qualche direzione. Questa fase consiste quindi nel trovare i cosiddetti \textit{motion vectors}, che indicano ogni blocco individuato in un frame dove si è spostato nel frame successivo.
+
+Una volta ottenuta la predizione, viene confrontata con l'originale e la differenza viene inviata come informazione spaziale ai blocchi \textbf{DCT - Quantization - Variable Length Coding}, che si comportano in maniera molto simile a quanto visto con JPEG. Il decompressore invece esegue a grandi linee gli stessi passi ma all'inverso.
+
+\begin{figure}[htbp!]
+  \centering
+  \includesvg[inkscapelatex=false, width = \textwidth]{7.2}
+\end{figure}
+\FloatBarrier
+
+Il problema della realizzazione di MPEG è che si vuole raggiungere un'elevata compressione, cosa che non è realizzabile se le immagini che compongono il video vengono codificate indipendentemente; dall'altra parte si vuole garantire la possibilità di effettuare un accesso casuale, che si realizza meglio se si codificano le immagini in modo indipendente. MPEG-2 ha tre diversi tipi di frame, che vengono elaborati dal programma di visualizzazione:
+\begin{itemize}
+    \item \textbf{Frame intracodificati - tipo I} - sono immagini fisse codificate con un algoritmo simile a JPEG e corrispondono tipicamente ai frame presenti durante un cambio di scena. Utilizzano la luminanza a piena risoluzione e la crominanza a metà risoluzione lungo ciascun asse. Devono apparire periodicamente in uscita per tre ragioni:
+    \begin{itemize}
+        \item in una trasmissione televisiva, con gli spettatori che possono sintonizzarsi in qualsiasi momento, se tutti i frame dipendessero dai precedenti fino al primo, chiunque abbia perso il primo frame non potrebbe mai decodificare i successivi, e ciò non permetterebbe agli spettatori di sintonizzarsi dopo che la trasmissione è iniziata;
+        \item se un frame fosse ricevuto con errori non sarebbe possibile decodificare i successivi;
+        \item mentre si effettua un rewind o un fast-forward, il decodificatore dovrebbe calcolare ciascun frame su cui è passato se vuole conoscere quello su cui si è fermato, invece utilizzando i frame I può saltare avanti e indietro finché non ne trova uno, ed iniziare la visualizzazione da quel punto.
+    \end{itemize}
+    \item \textbf{Frame predittivi - tipo P} - differenze blocco per blocco con l'ultimo frame, sono i frame più utilizzati e usano la \textit{motion compensation}: il \textit{motion vector} viene ottenuto minimizzando una opportuna funzione di costo. La predizione nella compensazione del moto significa assumere che localmente l'immagine attuale possa essere divisa in parti di un'immagine precedente. L'interpolazione è una delle principali caratteristiche di MPEG, infatti i macroblocchi interpolati sono formati da una media tra la predizione di un frame passato e la predizione di un frame futuro.
+    
+    \begin{figure}[htbp!]
+        \centering
+        \includesvg[inkscapelatex=false, width = 0.7 \textwidth]{7.3}
+    \end{figure}
+    \FloatBarrier
+    
+    Per ogni blocco \(U\) si cerca la corrispondenza tra questo blocco e il blocco \(U\) del frame precedente. In realtà non si considera l'intero frame ma una \textit{search area} che sta attorno al frame \(U\). Per ogni posizione \((i,j)\) in cui mettiamo il primo pixel del blocco \(U\), andiamo a calcolare rispetto a \(U_{REF}\) la distorsione di \((i,j)\), che individua la differenza dei valori tra il frame \(T-1\) e il frame \(T\). Tra tutte le possibili corrispondenze cerchiamo quella che minimizza questa distorsione, detta \textbf{DMD} (\textit{Direction of Minimum Distortion}). Questa sarà la posizione che assumeranno compressore e decompressore per predire il valore di \(U\). Una predizione ottenuta in questo modo non è precisa, infatti dovranno essere applicate delle correzioni spaziali calcolate con una tecnica simile a quella di JPEG (quantizzazione, DCT, ecc.);
+    \item \textbf{Frame bidirezionali - tipo B} - sono frame interpolati a partire da macroblocchi di riferimento che sono nel frame precedente (o in un altro frame precedente) e in quello successivo (o in un altro frame successivo) che possono essere frame I oppure frame P.
+\end{itemize}
+
+La sintassi MPEG è stratificata, nel senso che vengono definiti diversi livelli incapsulati uno nell'altro. Ad ogni livello corrisponde un header seguito dai dati. In cima alla gerarchia c'è una sequenza nella quale si definiscono la dimensione delle immagini, il frame rate, il bit rate. La sequenza è divisa in gruppi di immagini (GOP), che sono in ordine contiguo di codifica,, che può essere diverso dall'ordine di visualizzazione. Ogni GOP contiene tre tipi di immagini, ovvero le immagini I (intraframe), le immagini P (predette) e le immagini B (interpolate). Ogni immagine infine è composta da tre componenti: una di luminanza e due di crominanza (con eventuale sottocampionamento). Il primo frame è al 99.9\% un frame di tipo I. Di solito le interpolazioni per i frame di tipo B vengono calcolate alla fine, quando sono stati già inviati i frame di tipo I e di tipo P. 
+
+\begin{figure}[htbp!]
+    \centering
+    \includesvg[inkscapelatex=false, width = 0.8 \textwidth]{7.4}
+\end{figure}
+\FloatBarrier
+
+I frame sono a loro volta suddivisi in \textbf{slice}: gli slice header contengono delle informazioni importanti per la sincronizzazione e per il controllo degli errori. La dimensione delle slice non è standardizzata e in MPEG-1 una slice poteva anche stare su più righe, mentre a partire da MPEG-2 viene stabilito che una slice deve iniziare e finire sulla stessa riga.
+Ogni sequenza è divisa in GOP, ogni GOP corrisponde a una serie di immagine che hanno un'immagine per la luminanza e due immagini sottocampionate per la crominanza. 
+Le slice contengono un numero intero di macroblocchi. Un macroblocco contiene un'area quadrata di 16x16 pixel di luminanza e le corrispondenti aree di crominanza, ma possono anche essere 8x8 o 64x64, dipende dall'implementazione. I macroblocchi sono l'unità base che si usa per la compensazione del moto tra frame. Ci sono poi i blocchi che sono l'unità elementare su cui si calcola la DCT e su cui viene applicata la quantizzazione. MPEG-1 supportava solo il formato 4:2:0 in ingresso, ovvero si ottenevano sempre 6 blocchi (4 di luminanza e 2 di crominanza), mentre con MPEG-2 è possibile anche utilizzare i formati 4:2:2 o 4:4:4, in questi casi ogni macroblocco è formato da 8 o 12 blocchi rispettivamente.
+
+
+\begin{figure}[htbp!]
+    \centering
+    \includesvg[inkscapelatex=false, width =\textwidth]{7.5}
+\end{figure}
+\FloatBarrier
+
+
+\let\cleardoublepage\clearpage

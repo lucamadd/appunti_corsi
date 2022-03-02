@@ -1,0 +1,473 @@
+\chapter{Stringhe e linguaggi}
+
+\section{Alfabeto}
+Un alfabeto è un insieme finito di elementi (chiamati lettere
+o simboli o caratteri (terminali))
+
+\vspace{5mm}
+
+\textbf{Esempio:} L’alfabeto delle lettere romane minuscole è
+\(\Sigma = {a, b, c, \dots, z}\) 
+
+\vspace{5mm}
+
+\textbf{Esempio:} L’alfabeto delle cifre arabe è
+\(\Sigma = {0, 1, \dots , 9}\) 
+
+\vspace{5mm}
+
+\textbf{Esempio:} L’alfabeto binario è
+\(\Sigma = {0, 1}\) 
+
+\vspace{5mm}
+
+Sia \(\Sigma = {a_1, \dots, a_k}\) un alfabeto di \(k\) simboli. La cardinalità di \(\Sigma\) è \(k\). In simboli: \(|\Sigma| = k\).
+
+Una stringa (o parola) su un alfabeto è una sequenza (finita)
+di simboli dell’alfabeto.
+Ossia è un insieme ordinato con eventuali ripetizioni di
+caratteri.
+
+\vspace{5mm}
+
+\textbf{Esempio:} Sia \(\Sigma = {a, b}\).
+\(aaba, aaa, abaa, b\) sono stringhe.
+\vspace{5mm}
+
+\textbf{Esempio:} 0131 `e una stringa sull’alfabeto \(\Sigma = {0, 1, 2, \dots, 9}\).
+\vspace{5mm}
+
+\textbf{Esempio:} 0101 `e una stringa sull’alfabeto \(\Sigma = {0, 1}\).
+
+La cardinalit`a di un linguaggio (finito) `e il numero delle sue
+stringhe.
+\vspace{5mm}
+
+\textbf{Esempio:}
+\(|L2| = |{aba, aab}| = 2\)
+Un linguaggio finito `e un linguaggio che ha un numero finito
+di stringhe.
+Un linguaggio infinito `e un linguaggio non finito.
+Un esempio di linguaggio finito: il linguaggio vuoto \(\emptyset\).
+\(|\emptyset| = 0\).
+
+Nota: non solo linguaggi finiti.
+Infatti i linguaggi finiti non sono di solito interessanti.
+Tutti i nostri alfabeti sono finiti, ma la maggior parte dei
+linguaggi che incontreremo sono infiniti.
+
+\section{Stringhe}
+Il numero di occorrenze di un carattere a in una stringa \(x\)
+viene indicato da \(|x|_a\).
+\vspace{5mm}
+
+\textbf{Esempio:}
+\[|aab|_a = 2, |baa|_a = 2, |baa|_b = 1, |baa|_c = 0\]
+La lunghezza di una stringa \(x\) `e il numero di simboli in \(x\).
+La lunghezza di \(x\) `e denotata con \(|x|\).
+\textbf{Esempio}: \(|ab| = 2, |abaa| = 4\).
+
+Due stringhe
+\[x = a_{1}a_{2} \dots a_{h}, y = b_{1}b_{2} \dots b_{k} ,\]
+con \(a_{i}, b_{j} \in \Sigma, 1 \leq i \leq h, 1 \leq j \leq k\), si dicono eguali se \(h = k e a_i = b_i\)
+, per \(i = 1, \dots , h\).
+In due stringhe uguali i caratteri letti ordinatamente da
+sinistra a destra coincidono.
+Esempio: \(aba \neq baa, baa \neq ba\).
+
+\subsection{Operazioni sulle stringhe}
+Date le stringhe
+\[x = a_{1}a_{2} \dots a_{h}, y = b_{1}b_{2} \dots b_k ,\]
+con \(a_i, b_j \in \Sigma, 1 \leq i \leq h, 1 \leq j \leq k\), la concatenazione (di
+\(x\) e \(y\)) `e definita da
+\[x \dot y = a_{1}a_{2} \dots a_{h}b_{1}b_{2} \dots b_{k}\]
+La concatenazione di due stringhe \(x\) e \(y\) `e spesso denotata \(xy\)
+(invece che \(x \dot y\)).
+\vspace{5mm}
+\textbf{Esempio:} \(x =\) vice, \(y =\) capo, \(z =\) stazione \(xy =\) vicecapo,
+\(yx =\) capovice \(\neq xy\)
+\((xy)z =\) vicecapostazione \(= x(yz)\)
+
+La concatenazione non `e commutativa, in generale \(xy \neq  yx\).
+La concatenazione `e associativa:
+\[(xy)z = x(yz)\]
+(possiamo scrivere senza parentesi la concatenazione di tre o
+pi`u stringhe).
+\(|xy| = |x| + |y|\)
+
+La stringa vuota \(\epsilon\) `e la stringa che non contiene nessun
+simbolo.
+Propriet`a della stringa vuota:
+\[x \epsilon = \epsilon x = x\]
+\[|\epsilon| = 0\]
+Nota :
+\[\emptyset \neq \epsilon, \emptyset \neq \{\epsilon\}\]
+
+\textbf{Definizione.} Data una stringa \(x\), una sottostringa di \(x\) `e una qualsiasi
+sequenza di simboli consecutivi della stringa \(x\). Un prefisso di
+\(x\) `e una qualsiasi sequenza di simboli consecutivi iniziali della
+stringa \(x\). Un suffisso di \(x\) `e una qualsiasi sequenza di simboli
+consecutivi terminali della stringa \(x\).
+Se \(x = uyv\) `e la concatenazione di stringhe \(u\), \(y\), \(v\)
+(eventualmente vuote) allora:
+\begin{itemize}
+    \item \(y\) `e una \textbf{sottostringa} di \(x\),
+    \item \(u\) `e un \textbf{prefisso} di \(x\),
+    \item \(v\) `e un \textbf{suffisso} di \(x\)
+\end{itemize}
+Una sottostringa (prefisso, suffisso) di \(x\) `e \textbf{propria} se non
+coincide con \(x\).
+
+Esempio: La stringa 472 ha
+\begin{itemize}
+    \item prefissi: \(epsilon\), 4, 47, 472,
+    \item suffissi: \(epsilon\), 2, 72, 472,
+    \item sottostringhe: \(epsilon\), 4, 7, 2, 47, 72, 472
+    \item La stringa 42 non `e sottostringa di 472.
+\end{itemize}
+
+L’inversa (o reverse o riflessione) \(w^R\) di una stringa \(w\) `e la stringa
+ottenuta scrivendo i caratteri di \(w\) da destra verso sinistra.
+\(\epsilon^R = \epsilon\) e se \(w = a_1 \dots a_n\), con \(a_j\)
+lettere, allora
+\(w^R = a_n, a_{n-1} \dots a_1\).
+\textbf{Esempio:} x = roma, \(x^R\) = amor.
+Propriet`a:
+\[(x^R)^R = x, (xy)^R = y^Rx^R\]
+
+\begin{itemize}
+    \item PASSO BASE: \(\epsilon^R = \epsilon\).
+    \item PASSO RICORSIVO: Per ogni \(x \in \Sigma*\) e \(\sigma \in \Sigma\), \((x\sigma)^R = \sigma x^R\).
+\end{itemize}
+
+Sia \(m \geq 1\) un intero. La potenza m-esima di una stringa \(x\) `e
+la concatenazione di \(x\) con s´e stessa \(m - 1\) volte.
+Per convenzione la potenza 0 di una stringa `e la stringa vuota.
+
+\vspace{5mm}
+
+\textbf{Definizione}: Sia \(x\) una stringa. Poniamo:
+\begin{itemize}
+    \item PASSO BASE: \(x^0 = \epsilon\)
+    \item PASSO RICORSIVO: \(x^m = x^{m-1}x\), per \(m > 0\).
+\end{itemize}
+\textbf{Esempi}:
+\begin{itemize}
+    \item \(x = ab\)
+    \item \(x^0 = \epsilon\)
+    \item \(x^1 = x = ab\)
+    \item \(x^2 = (ab)^2 = abab\)
+    \item \(y = a^2 = aa\)
+    \item \(y^3 = a^{2}a^{2}a^{2} = a^6\)
+    \item \(\epsilon^0 = \epsilon\)
+    \item \(\epsilon^2 = \epsilon\)
+\end{itemize}
+Nota. E necessario racchiudere tra parentesi la stringa da `
+elevare alla potenza se ha lunghezza maggiore di uno.
+\[(ab)^2 = abab \neq abb = ab^2\]
+L’elevamento a potenza ha precedenza rispetto alla
+concatenazione.
+Anche la riflessione ha precedenza rispetto alla
+concatenazione.
+\(b^R = b\), quindi \(ab^R = ab\), mentre \((ab)^R = ba \neq ab^R = ab\)
+
+\section{Linguaggi}
+Data un’operazione su una stringa, essa si pu`o estendere a
+tutte le stringhe di un linguaggio.
+Otteniamo cos`ı alcune operazioni sui linguaggi.
+
+La riflessione di un linguaggio L:
+\[L^R = \{x | x = y^R \wedge y \in L\}\]
+L’insieme dei prefissi propri di un linguaggio L:
+\begin{center}
+Prefissi(L) = \(\{y | x = yz \wedge x \in L \wedge z \neq \epsilon\}\)
+\end{center}
+
+Un linguaggio `e prefisso se non contiene nessuno dei suoi
+prefissi propri.
+Un linguaggio L `e prefisso se e solo se
+\(L \cap\) Prefissi(L) \(= \emptyset\)
+Importanza pratica: se nella trasmissione dell’informazione
+una parte finale della stringa viene accidentalmente troncata,
+l’errore viene individuato.
+Nella codifica dell’informazione la decodifica `e immediata.
+
+\textbf{Esempio.} \(L_1 = \{a^{n}b^{n}| n \geq 1\}\) `e prefisso perch´e
+Prefissi\((L_1) = \{a^{n}b^{m} | n > m \geq 1\} \cup \{a^{n}| n \geq 0\}\).
+
+\vspace{5mm}
+
+\textbf{Esempio.} \(L_2 = {a^{m}b^{n}| m \geq n \geq 1}\) non `e prefisso perch´e,ad esempio, \(a^{3}b^{2}\) e \(a^{3}b\) sono entrambi in \(L2\).
+
+\vspace{5mm}
+
+\textbf{Esempio.} Ogni linguaggio L che contiene la stringa vuota \(\epsilon\) e
+tale che \(L \neq {\epsilon}\) non `e prefisso.
+
+Anche le operazioni su due stringhe possono essere estese a
+due linguaggi.
+
+\subsection{Operazioni sui linguaggi}
+Anche le operazioni su due stringhe possono essere estese a
+due linguaggi.
+\subsubsection{Prodotto di linguaggi}
+Dati due linguaggi $L^{\prime}$ ed $L^{\prime \prime}$ sull'alfabeto $\Sigma$, il prodotto (o concatenazione) di $L^{\prime}$ ed $L^{\prime \prime}$ è
+$$
+L^{\prime} L^{\prime \prime}=L^{\prime} \circ L^{\prime \prime}=\left\{x y \mid x \in L^{\prime} \wedge y \in L^{\prime \prime}\right\}
+$$
+$L^{\prime} L^{\prime \prime}$ è l'insieme di tutte le stringhe che sono concatenazione di una stringa in $L^{\prime}$ e di una stringa in $L^{\prime \prime}$.
+Esempio. Siano
+$$
+\begin{gathered}
+L_{1}=\left\{a^{i} \mid i \geq 0, \text { pari }\right\} \\
+L_{2}=\left\{b^{j} a \mid j \geq 1, \text { dispari }\right\}
+\end{gathered}
+$$
+risulta
+$$
+L_{1} L_{2}=\left\{a^{i} b^{j} a \mid(i \geq 0, \text { pari }) \wedge(j \geq 1, \text { dispari })\right\}
+$$
+Esempi di stringhe in $L_{1} L_{2}$ :
+$$
+b a, a^{2} b a, a^{4} b a, b^{3} a, a^{2} b^{3} a, a^{4} b^{3} a
+$$
+\subsubsection{Potenza di un linguaggio}
+Sia L un linguaggio sull'alfabeto $\Sigma$. Definiamo:
+$$
+\begin{aligned}
+L^{0} &=\{\epsilon\}, \\
+L^{k} &=L^{k-1} L, \quad k \geq 1
+\end{aligned}
+$$
+Nota.
+$$
+\begin{aligned}
+&L^{1}=L \\
+&L^{k}=\left\{w_{1} w_{2} \ldots w_{k} \mid w_{i} \in L, 1 \leq i \leq k\right\}, k \geq 0
+\end{aligned}
+$$
+\textbf{Casi particolari:} 
+$$
+\emptyset^{0} =\{\epsilon\} 
+$$
+$$
+L \cdot \emptyset =\emptyset \cdot L=\emptyset 
+$$
+$$
+L \cdot\{\epsilon\} =\{\epsilon\} \cdot L=L
+$$
+
+Nota. Dato un linguaggio $L$ e un intero $m \geq 2$ consideriamo
+- il linguaggio $\left\{x^{m} \mid x \in L\right\}$ che ha come elementi le potenze $m$-esime degli elementi di $L$,
+- la potenza $m$-esima $L^{m}$ di $L$.
+$$
+\left\{x^{m} \mid x \in L\right\} \subseteq L^{m}
+$$
+In generale il primo è incluso ma è diverso dal secondo.
+Esempio
+$$
+L=\{a, b\}, \quad\left\{x^{2} \mid x \in L\right\}=\{a a, b b\}, \quad L^{2}=\{a a, b b, a b, b a\}
+$$
+Nota. Dato un linguaggio $L$ e un intero $m \geq 2$, in generale $\left\{x^{m} \mid x \in L\right\}$ è incluso strettamente in $L^{m}$.
+Cosa accade per $m=0$ ?
+Cosa accade per $m=1$ ?
+Esistono linguaggi $L$ tali che $\left\{x^{m} \mid x \in L\right\}=L^{m}$ con $m \geq 2$ ?
+L'operatore di potenza permette di definire in modo espressivo il linguaggio delle stringhe di lunghezza non superiore a un intero $k$.
+Esempio. Sia $\Sigma=\{a, b\}$ e $k=3$.
+$$
+\begin{aligned}
+L &=\left\{w \in \Sigma^{*}|| w \mid \leq 3\right\} \\
+&=\{\epsilon, a, b, a a, a b, b a, b b, a a a, a a b, a b a, a b b, b a a, b a b, b b a, b b b\}
+\end{aligned}
+$$
+Altre espressioni per L:
+$$
+\begin{aligned}
+&L=\Sigma^{0} \cup \Sigma^{1} \cup \Sigma^{2} \cup \Sigma^{3} \\
+&L=\{\epsilon, a, b\}^{3} \\
+&L^{\prime}=\left\{w \in \Sigma^{*}|1 \leq| w \mid \leq 3\right\}=\{a, b\}\{\epsilon, a, b\}^{2}
+\end{aligned}
+$$
+\subsubsection{Operazioni sui linguaggi - operazioni insiemistiche}
+I linguaggi sono insiemi. Quindi le operazioni insiemistiche di unione, intersezione, differenza, complemento sono definite anche per i linguaggi in quanto insiemi di stringhe;
+come pure le relazioni di inclusione $(\subseteq)$, di inclusione stretta (C) e di eguaglianza (=).
+\subsubsection{Operazioni sui linguaggi - differenza}
+Se $L_{1}$ ed $L_{2}$ sono due linguaggi su un alfabeto $\Sigma$, la differenza $L_{1}-L_{2}$ di $L_{1}$ ed $L_{2}$ è
+$$
+L_{1}-L_{2}=\left\{w \in L_{1} \mid w \notin L_{2}\right\} .
+$$
+Notazione alternativa: $L_{1} \backslash L_{2}$.
+$$
+\begin{aligned}
+&\Sigma=\{a, b, c\} \\
+&L_{1}=\left\{\left.x|| x\right|_{a}=|x|_{b}=|x|_{c} \geq 0\right\} \\
+&L_{2}=\left\{x \mid\left(|x|_{a}=|x|_{b} \geq 0\right) \wedge\left(|x|_{c}=1\right)\right\} \\
+&L_{1}-L_{2}=\{\epsilon\} \cup\left\{\left.x|| x\right|_{a}=|x|_{b}=|x|_{c} \geq 2\right\} \\
+&L_{2}-L_{1}=\left\{\left.x|| x\right|_{a}=|x|_{b} \neq|x|_{c}=1\right\}
+\end{aligned}
+$$
+\subsubsection{Operazioni sui linguaggi - complemento}
+Per parlare del complemento di un linguaggio (su un alfabeto $\Sigma)$ si deve introdurre un linguaggio universale, definito come l'insieme di tutte le stringhe su un alfabeto $\Sigma$.
+
+L'insieme $\Sigma^{*}$ di tutte le stringhe su un alfabeto $\Sigma$ è l'unione di tutte le potenze dell'alfabeto.
+$$
+L_{\text {universale }}=\Sigma^{*}=\cup_{n \geq 0} \Sigma^{n}
+$$
+Se $L \subseteq \Sigma^{*}$, il complemento $\bar{L}$ di $L$ è
+$$
+L=\Sigma^{*}-L=\left\{w \in \Sigma^{*} \mid w \notin L\right\}
+$$
+Notazione alternativa: $\neg L$.
+Esempio. Alfabeto: $\{a, b\}$
+Linguaggio $L=\left\{w \in\{a, b\}^{*} \mid\right.$ la prima lettera di $w$ è $\left.b\right\}$ L: ?
+
+$\bar{L}$: insieme delle stringhe su $\{a, b\}$ che non iniziano con $b$. N.B.:NON insieme stringhe che iniziano con a (es. stringa vuota $\epsilon \in \bar{L})$
+II complemento di un linguaggio finito è sempre infinito.
+Esempio. Alfabeto: $\{a, b\}$
+Linguaggio: insieme delle stringhe di una qualsiasi lunghezza tranne che due.
+$$
+\bar{\{a, b\}^{2}}=\{\epsilon\} \cup\{a, b\} \cup\left(\cup_{n \geq 3}\{a, b\}^{n}\right)
+$$
+Non è detto però che il complemento di un linguaggio infinito sia finito.
+Esempio. Alfabeto: $\{a\}$
+$$
+\begin{aligned}
+&L=\left\{a^{2 n} \mid n \geq 0\right\} \\
+&\bar{L}=\left\{a^{2 n+1} \mid n \geq 0\right\}
+\end{aligned}
+$$
+\subsubsection{Operazioni sui linguaggi - star di Kleene}
+A eccezione dell'operazione di complemento, le operazioni finora viste non permettono una descrizione finita di linguaggi infiniti. Questo è possibile mediante l'operazione star.
+Chiusura di Kleene (o Kleene star o star o stella di Kleene)
+Definizione
+La chiusura di Kleene (o Kleene star o star) di un linguaggio L è l'unione di tutte le potenze del linguaggio:
+$$
+L^{*}=\bigcup_{n \in \mathbb{N}, n \geq 0} L^{n}
+$$
+
+Nota. $L^{*}$ è il linguaggio delle stringhe ottenute concatenando un numero qualsiasi di stringhe di $L$ :
+$$
+L^{*}=\left\{w_{1} w_{2} \ldots w_{k} \mid k \geq 0, w_{i} \in L, 1 \leq i \leq k\right\}
+$$
+Nota. Se $k=0, w_{1} w_{2} \ldots w_{k}=\epsilon$ è la stringa vuota.
+
+Esempio. Dato $L=\{a b, b a\}$, ogni stringa non vuota in $L^{*}$ è la concatenazione di parole uguali ad $a b$ o a ba.
+$$
+L^{*}=\left\{(a b)^{n_{1}}(b a)^{m_{1}} \cdots(a b)^{n_{h}}(b a)^{m_{h}} \mid h \geq 0, n_{i}, m_{i} \geq 0, i=1, \ldots, h\right\}
+$$
+
+Nota.
+$$
+\emptyset^{*}=\{\epsilon\}, \quad\{\epsilon\}^{*}=\{\epsilon\}
+$$
+I linguaggi $\emptyset,\{\epsilon\}$ sono gli unici tali che la loro chiusura di Kleene è un linguaggio finito. Altrimenti, anche se $L$ è finito, $L^{*}$ è infinito.
+
+- Se il linguaggio è un alfabeto $\Sigma$, la sua chiusura di Kleene $\Sigma^{*}$ è il linguaggio universale.
+
+- Un linguaggio formale $L$ su un alfabeto $\Sigma$ è un sottoinsieme di $\Sigma^{*}: L \subseteq \sum^{*} .$
+
+- A volte $L^{*}$ coincide con $L$.
+
+Esempio Se $L=\left\{a^{2 n} \mid n \geq 0, n \in \mathbb{N}\right\}$, allora $L^{*}=\left\{a^{2 n} \mid n \geq 0, n \in \mathbb{N}\right\}=L .$
+
+\subsubsection{Proprietà chiusura di Kleene}
+\begin{itemize}
+    \item $L \subseteq L^{*}$ (monotonicità)
+    \item $\left(x \in L^{*} \wedge y \in L^{*}\right) \rightarrow x y \in L^{*}$ (chiusura rispetto alla concatenazione)
+    \item $\left(L^{*}\right)^{*}=L^{*}$ (idempotenza)
+    \item $\left(L^{*}\right)^{R}=\left(L^{R}\right)^{*}($ commutatività di star e riflessione $)$
+\end{itemize}
+Esempio Se $L=\left\{a^{2 n} \mid n \geq 0, n \in \mathbb{N}\right\}$, allora $L=\{\text { aa }\}^{*}$. Quindi
+$$
+\begin{aligned}
+L^{*} &=\left\{a^{2 n} \mid n \geq 0, n \in \mathbb{N}\right\}^{*} \\
+&=\left(\{a a\}^{*}\right)^{*} \\
+&=\{a a\}^{*}=L
+\end{aligned}
+$$
+per la proprietà di idempotenza.
+\subsubsection{Identificatori}
+Molti linguaggi di programmazione assegnano nomi o identificatori agli oggetti (variabili, sottoprogrammi, ecc.) utilizzati.
+Una regola comune a molti linguaggi dice che un identificatore è una stringa che inizia con una lettera in $\{A, B, \ldots, Z\}$ seguita da un numero qualsiasi di lettere e cifre in $\{0,1, \ldots, 9\}$.
+Esempio SOMMA32A35.
+
+Definiti gli alfabeti
+$$
+\Sigma_{A \ell}=\{A, B, \ldots, Z\}, \quad \Sigma_{N}=\{0,1, \ldots, 9\}
+$$
+il linguaggio $I \subseteq\left(\Sigma_{A \ell} \cup \Sigma_{N}\right)^{*}$ degli identificatori risulta:
+$$
+I=\Sigma_{A \ell}\left(\Sigma_{A \ell} \cup \Sigma_{N}\right)^{*}
+$$
+
+Sia $I_{5}$ il linguaggio degli identificatori di lunghezza al più $5 .$ Posto $\Sigma=\Sigma_{A \ell} \cup \Sigma_{N}$, risulta
+$$
+\begin{aligned}
+I_{5} &=\Sigma_{A \ell}\left(\Sigma^{0} \cup \Sigma^{1} \cup \Sigma^{2} \cup \Sigma^{3} \cup \Sigma^{4}\right) \\
+&=\Sigma_{A \ell}\left(\{\epsilon\} \cup \Sigma \cup \Sigma^{2} \cup \Sigma^{3} \cup \Sigma^{4}\right) \\
+&=\Sigma_{A \ell}(\{\epsilon\} \cup \Sigma)^{4}
+\end{aligned}
+$$
+
+\subsubsection{Chiusura positiva o croce}
+Una operazione utile (ma non indispensabile) è la chiusura positiva (o croce).
+
+Per un linguaggio L sull'alfabeto $\Sigma$, definiamo
+$$
+L^{+}=\bigcup_{n \in \mathbb{N}, n>0} L^{n}
+$$
+La chiusura positiva si distingue dalla chiusura di Kleene perché nell'unione non compare la potenza di $L$ con esponente zero $L^{0}=\{\epsilon\}$.
+Valgono le relazioni
+$$
+L^{+} \subseteq L^{*}
+$$
+$\epsilon \in L^{+}$se e solo se $\epsilon \in L$
+$$
+L^{+}=L L^{*}=L^{*} L
+$$
+
+Esempio. Dato $L=\{a b, b a\}$, ogni stringa in $L^{+}$è la concatenazione di parole uguali ad $a b$ o a ba.
+$$
+L^{+}=\left\{(a b)^{n_{1}}(b a)^{m_{1}} \cdots(a b)^{n_{h}}(b a)^{m_{h}} \mid h>0, n_{i}, m_{i} \geq 0, \exists j n_{j}+m_{j} \neq 0\right\}
+$$
+
+Esempio.
+$$
+\{\epsilon, a a\}^{+}=\left\{a^{2 n} \mid n \geq 0, n \in \mathbb{N}\right\}=\{a a\}^{*}
+$$
+Esempio. Le stringhe di lunghezza almeno quattro:
+$$
+\Sigma^{4} \Sigma^{*}=\left(\Sigma^{+}\right)^{4}
+$$
+
+\subsubsection{Quoziente}
+Le operazioni sui linguaggi finora viste non possono essere utilizzate per accorciare le stringhe del linguaggio/dei linguaggi su cui operano.
+L'operazione di quoziente (destro) accorcia una stringa del primo linguaggio cancellandone un suffisso appartenente al secondo.
+
+Il quoziente (destro) di L' rispetto ad L" è definito come
+$$
+\begin{aligned}
+L=L^{\prime}\left(L^{\prime \prime}\right)^{-1} &=\left\{y \mid\left(x=y z \in L^{\prime}\right) \wedge\left(z \in L^{\prime \prime}\right)\right\} \\
+&=\left\{y \mid \text { esiste } z \in L^{\prime \prime} \text { tale che } y z \in L^{\prime}\right\}
+\end{aligned}
+$$
+Notazione alternativa: $L^{\prime} /{ }_{D} L^{\prime \prime}$
+
+Esempio. Siano
+$$
+L^{\prime}=\left\{a^{2 n} b^{2 n} \mid n \in \mathbb{N}, n>0\right\}, \quad L^{\prime \prime}=\left\{b^{2 n+1} \mid n \in \mathbb{N}, n \geq 0\right\}
+$$
+$$
+\begin{gathered}
+L^{\prime}\left(L^{\prime \prime}\right)^{-1}=\left\{a^{r} b^{s} \mid r, s \in \mathbb{N},(r \geq 2, \text { pari }) \wedge(1 \leq s<r, s \text { dispari })\right\} \\
+L^{\prime \prime}\left(L^{\prime}\right)^{-1}=\emptyset
+\end{gathered}
+$$
+
+Esiste un'operazione duale, il quoziente sinistro $L^{\prime} / s L^{\prime \prime}$ che accorcia una stringa del primo linguaggio cancellandone un prefisso appartenente al secondo.
+$$
+L=\left(L^{\prime \prime}\right)^{-1} L^{\prime}=\left\{z \mid\left(x=y z \in L^{\prime}\right) \wedge\left(y \in L^{\prime \prime}\right)\right\}
+$$
+Notazione alternativa: $L^{\prime} / { }_{S} L^{\prime \prime}$
+
+\let\cleardoublepage\clearpage

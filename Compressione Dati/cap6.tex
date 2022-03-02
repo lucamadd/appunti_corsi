@@ -1,0 +1,71 @@
+\chapter{Compressione lossy di immagini}
+
+Come abbiamo detto anche precedentemente, lo standard JPEG utilizza principalmente la modalità lossy per la compressione delle immagini. JPEG ha però quattro modalità di funzionamento, ognuna con diverse opzioni possibili:
+\begin{itemize}
+    \item Baseline
+    \item Progressive Encoding
+    \item Hierarchical (Pyramidal) Encoding
+    \item Lossless Encoding
+\end{itemize}
+
+La codifica base che usa JPEG è in modalità baseline, mentre degli altri tre modi abbiamo visto lossless encoding. Gli altri due invece sono versioni modificate di baseline encoding. JPEG baseline è uno degli standard di compressione più utilizzati e ne sono state sviluppate diverse implementazioni su quasi tutte le architetture esistenti, e nella sua versione lossy era molto avanzato rispetto anche alla versione lossless, infatti si basava su anni di ricerca precedente nel campo della compressione di immagini. Nonostante sia uno standard del 1996, ancora oggi viene utilizzato in molteplici applicazioni, grazie anche al fatto che ha prestazioni elevate e bassa complessità computazionale. JPEG è un \textit{Open Standard}, nel senso che non definisce una particolare implementazione, ma fornisce uno schema di base che deve essere seguito nelle diverse implementazioni per essere considerato conforme. 
+
+Gli scopi di JPEG erano considerati i seguenti:
+\begin{itemize}
+    \item avendo a che fare con immagini fotografiche, e avendo come target principale la diffusione delle macchine fotografiche digitali, si voleva ottenere una rappresentazione compressa dell'immagine che fosse però considerata \textit{very good} o \textit{excellent} dall'occhio umano;
+    \item doveva essere utilizzabile per la compressione di immagini a toni continui sia in scala di grigi che a colori, con qualsiasi spazio di colori e dimensione;
+    \item doveva avere una complessità computazionale tale da poter essere implementato sulle architetture di quegli anni, e avere implementazioni hardware poco costose.
+\end{itemize}
+
+Finora con le strategie lossless avevamo un modo semplice di verificare quale tecnica di compressione fosse migliore: se non consideravamo la complessità computazionale, un algoritmo era migliore di un altro se comprimeva meglio (ovvero se aveva un rapporto di compressione maggiore). Quando parliamo di compressione lossy, a prescindere dalla complessità computazionale, non ci basta dire che un algoritmo comprime più di un altro, ma bisogna considerare anche la qualità della compressione, ovvero quanto è vicina l'immagine compressa a quella originale. Per cui è necessario affrontare questo trade-off tra rapporto di compressione e qualità. Normalmente per confrontare due algoritmi il metodo che si usa consiste nel tenere fermo uno dei due parametri e vedere come si comporta l'algoritmo cambiando l'altro parametro. Tipicamente si tiene fermo il rapporto di compressione perché non esiste una misura oggettiva di qualità, bensì si utilizzano delle metriche quali \textbf{SNR} (Signal-to-Noise Ratio) e \textbf{PSNR} (Peak Signal-to-Noise Ratio), che però non sono sempre una misura efficiente della qualità visiva dell'immagine; tuttavia dire che un'immagine \textit{"si vede meglio di un'altra"} resta una cosa soggettiva e quindi opinabile. 
+
+\section{Baseline JPEG}
+Baseline JPEG si basa sulla tecnica del \textbf{Transform Coding}. Questo tipo di codifica si basa sul concetto di trasformata: finora infatti avevamo visto metodi di compressione che lavorano nel dominio spaziale, ovvero con una matrice di pixel in cui in ogni cella è indicato il valore di toni di grigio relativo a quel punto dell'immagine. Una trasformata cambia il dominio e in particolare la trasformata DCT porta un'immagine dal dominio spaziale (matrice di pixel) al dominio delle frequenze, nel quale un'immagine è vista come rappresentazione di frequenze più o meno visibili dall'occhio umano. Spostarci nel dominio delle frequenze è utile perché il nostro obiettivo è comprimere immagini fotografiche che devono essere viste dall'occhio umano, per cui se tagliamo quelle frequenze a cui il nostro occhio è meno sensibile, lasciando quelle a cui siamo più sensibili, si noterà una perdita di qualità molto bassa e quindi una qualità migliore.
+
+\vspace{5mm}
+
+Tipicamente applicare una trasformata non porta una perdita di informazioni, tuttavia la DCT implica dei calcoli a virgola mobile, che introducono degli errori di calcolo minimi (a causa della precisione limitata dei calcolatori) che però si ripercuotono durante l'inversione della trasformata. JPEG lavora con la \textbf{FDCT} (Forward DCT) e \textbf{IDCT} (Inverse DCT). Di seguito è mostrata la struttura del codificatore e del decodificatore:
+
+\begin{figure}[htbp!]
+  \centering
+  \includesvg[inkscapelatex=false, width = \textwidth]{6.1}
+\end{figure}
+\FloatBarrier
+
+La codifica baseline, chiamata \textbf{Sequential Encoding}, partiziona l'immagine in blocchi di 8x8 pixel ordinati da sinistra a destra e dall'alto verso il basso in maniera \textit{raster-like}. Viene poi applicata una DCT a ciascuno dei blocchi e la rappresentazione viene portata nel dominio delle frequenze, risultando in 64 coefficienti che rappresentano frequenze. Queste verranno poi quantizzate, ovvero verranno effettuati dei "tagli" sui valori andando a scartare le informazioni a cui il nostro occhio è meno sensibile. Questo processo viene effettuato utilizzando tabelle uniformi di quantizzazione basate su esperimenti psico-visuali. JPEG fornisce alcune tabelle, ma il loro uso non è obbligatorio: infatti l'implementatore di JPEG potrà cambiarle o usare tabelle specifiche scelte da lui. 
+
+Dopo che i coefficienti della DCT sono stati quantizzati, i coefficienti di ogni blocco vengono ordinati secondo un ordinamento chiamato \textit{zig-zag scan}, e il flusso di bit risultante viene codificato con run-length coding, per ottenere dei simboli intermedi che verranno poi codificati con Huffman o Arithmetic coding, in base alla versione di JPEG\footnote{Come detto anche in precedenza, prima che fosse reso gratuito Arithmetic coding, veniva utilizzato principalmente Huffman per la codifica entropica.}. Vediamo ora in dettaglio i sei passi della codifica baseline di JPEG.
+
+\subsubsection{Passo 1 - Preparazione dei blocchi}
+Supponiamo di avere un'immagine RGB di dimensione 640x480, con 24 bit/pixel. Si calcolano i valori di luminanza \(Y\) e due segnali di crominanza \(I\) e \(Q\). Si costruiscono poi tre matrici separate\footnote{Per il formato PAL i segnali di luminanza e crominanza sono rispettivamente \(Y, U, V\).} per \(Y, I, Q\), ognuna contenenti valori compresi tra 0 e 255. Si effettua poi la media su quadrati di 4 pixel sulle matrici \(I\) e \(Q\), per effettuare un downsampling a 320x240, e si sottrae ad ogni elemento 128, in modo che i valori possibili siano nell'intervallo [-128,127], e lo zero sia quindi al centro dell'intervallo. Infine ciascuna matrice viene divisa in blocchi 8x8. Ci troviamo quindi nella situazione in cui la matrice Y ha 4800 blocchi perché su di essa non è stato effettuato downsampling, mentre le altre due ne hanno 1200 ciascuna.
+
+\begin{figure}[htbp!]
+  \centering
+  \includesvg[inkscapelatex=false, width = \textwidth]{6.2}
+\end{figure}
+\FloatBarrier
+
+\subsubsection{Passo 2 - Applicazione della DCT}
+A questo punto ad ognuno dei 7200 blocchi viene applicata la DCT separatamente. L'output di ogni DCT è una matrice 8x8 di coefficienti DCT, di cui il valore in alto a sinistra, detto \(DCT(0,0)\) è il valore medio del blocco, mentre gli altri elementi esprimono quanta potenza spettrale è presente in ciascuna frequenza spaziale. Teoricamente applicare la DCT non genera perdita di informazione, tuttavia dato che utilizziamo calcolatori che hanno precisione finita, viene introdotto un errore di roundoff, per cui già l'applicazione della DCT di per sé è lossy.
+
+\subsubsection{Passo 3 - Quantizzazione}
+Si effettua poi la quantizzazione, andando ad eliminare i coefficienti meno importanti. Questa trasformazione viene effettuata dividendo ciascuno dei coefficienti della matrice 8x8 per un peso preso da una tabella detta \textbf{tabella di quantizzazione} ed arrotondandoli all'intero più vicino. Questo passo è quello che permette di eliminare le informazioni meno significative e quindi effettuare la vera e propria compressione della stessa.
+
+\subsubsection{Passo 4 - Riduzione del valore iniziale}
+Il valore iniziale \(DCT(0,0)\) di ogni blocco viene sostituito con la quantità di cui differisce dall'elemento corrispondente del blocco precedente. I valori \((0,0)\) sono detti \textbf{componenti DC}, gli altri valori \textbf{componenti AC}.
+
+\subsubsection{Passo 5 - Linearizzazione zig-zag scan}
+I 64 elementi di ogni blocco vengono linearizzati tramite zig-zag scan, come mostrato nella figura, e poi si applica alla lista un algoritmo di run-length encoding.
+
+\begin{figure}[htbp!]
+  \centering
+  \includesvg[inkscapelatex=false, width = 0.3 \textwidth]{6.3}
+\end{figure}
+\FloatBarrier
+
+\subsubsection{Passo 6 - Codifica entropica}
+Infine si utilizza uno tra Huffman e Arithmetic coding per codificare il risultato del passo precedente. I dati codificati possono essere ora memorizzati e/o trasmessi.
+Il procedimento che segue il decompressore è pressoché lo stesso.
+
+
+\let\cleardoublepage\clearpage

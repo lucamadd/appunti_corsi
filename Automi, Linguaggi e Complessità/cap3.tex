@@ -1,0 +1,348 @@
+\chapter{Gerarchia di Chomsky}
+Introduciamo adesso una deﬁnizione di grammatica che è più generale di quella data in precedenza (grammatica context-free).
+Questo concetto eredita molte caratteristiche dai sistemi di Thue, di Post, di riscrittura,... e fu introdotto da Noam Chomsky allo scopo di formalizzare le lingue naturali e facilitare la traduzione automatica.
+Vedremo che tali grammatiche, nella loro forma più generale, sono Turing-equivalenti, nel senso che gli insiemi di stringhe che generano sono Turing-riconoscibili.
+Poiché gli informatici sono interessati a usare le grammatiche per descrivere quelli che sono i programmi “ben formati”, ci siamo soﬀermati e ci soffermeremo ancora sulle grammatiche context-free, in modo da garantirci sia la decidibilità che l’efficienza.
+
+\vspace{5mm}
+
+Una grammatica (di tipo 0 o a struttura di frase) $G$, è una quadrupla $G=(V, T, P, S)$ dove:
+\begin{itemize}
+    \item V: Insieme finito di variabili (dette anche non terminali o categorie sintattiche). Ogni variabile rappresenta un linguaggio.
+    \item T: Insieme finito di simboli terminali (o alfabeto dei terminali). Ė l'alfabeto delle parole del linguaggio da definire. $T \cap V=\emptyset$.
+    \item $P$ : Insieme finito delle produzioni. Ogni produzione ha la forma $\alpha \rightarrow \beta$, dove $\alpha \in(V \cup T)^{+} e \beta \in(V \cup T)^{*}$.
+    \item S: Una variabile, detta simbolo iniziale (o start symbol), che rappresenta il linguaggio definito dalla grammatica.
+\end{itemize}
+
+La diﬀerenza consiste nella deﬁnizione di produzione.
+Le deﬁnizioni di derivazione diretta, derivazione e linguaggio generato sono le stesse.
+
+\subsubsection{Derivazione}
+Sia $G=(V, T, P, S)$ una grammatica.
+Sia $\alpha \rightarrow \beta \in P, \gamma_{1}, \gamma_{2} \in(V \cup T)^{*}$
+Allora diremo che
+$\gamma_{1} \alpha \gamma_{2}$ deriva (direttamente) $\gamma_{1} \beta \gamma_{2}$ in $G$ e scriveremo
+$$
+\gamma_{1} \alpha \gamma_{2} \underset{G}{\Rightarrow} \gamma_{1} \beta \gamma_{2}
+$$
+o, se G è chiara dal contesto, semplicemente
+$$
+\gamma_{1} \alpha \gamma_{2} \Rightarrow \gamma_{1} \beta \gamma_{2}
+$$
+
+\vspace{5mm}
+
+Sia $G=(V, T, P, S)$ una grammatica, siano $\alpha, \beta \in(V \cup T)^{*}$ Diremo che $\alpha$ deriva $\beta$ in $G, \alpha \underset{G}{\stackrel{*}{\Rightarrow}} \beta$, se esistono parole $\gamma_{1}, \ldots, \gamma_{n}, n \geq 1$, tali cheù
+\begin{enumerate}
+    \item $\alpha=\gamma_{1}$,
+    \item $\beta=\gamma_{n}$,
+    \item Per $i=1,2, \ldots, n-1$, si ha $\gamma_{i} \underset{G}{\stackrel{}{\Rightarrow}} \gamma_{i+1}$
+\end{enumerate}
+In questo caso diremo anche che $\alpha$ deriva $\beta$ in $n-1$ passi. Ovviamente $G$ è omessa se è chiara dal contesto.
+
+\subsubsection{Linguaggio di una grammatica}
+Sia $G=(V, T, P, S)$ una grammatica.
+
+Il linguaggio di G è
+$$
+L(G)=\{w \in T^{*} \mid S \underset{G}{\stackrel{*}{\Rightarrow}} w\}
+$$
+
+Nota: Le parole di $L(G)$ sono tutte e sole le stringhe di caratteri terminali per le quali esiste una derivazione dal simbolo iniziale.
+
+\subsubsection{Gerarchia di Chomsky}
+Le produzioni di una grammatica di tipo 0 non hanno alcun vincolo, se non quello di avere almeno un simbolo nella loro parte sinistra.
+Adesso porremo dei vincoli sulle produzioni, e vedremo che quanto più questi vincoli sono stringenti, tanto minore è il potere espressivo delle grammatiche in questione.
+Cioè i vincoli riducono la capacità computazionale del modello.
+Otterremo quindi una gerarchia di grammatiche al variare dei vincoli e in corrispondenza una gerarchia di linguaggi.
+Vedremo poi che a tale gerarchia corrisponde una gerarchia di automi.
+In base alla forma delle produzioni, classiﬁcheremo le grammatiche in quattro tipi, indicati brevemente come tipo 0, 1, 2 e 3.
+
+\vspace{5mm}
+
+Una grammatica $G=(V, T, P, S)$ è una grammatica di tipo 0 se ogni $\alpha \rightarrow \beta \in P$ è tale che $\alpha \in(V \cup T)^{+}$ e $ \beta \in(V \cup T)^{*}$.
+
+\vspace{5mm}
+
+Una grammatica $G=(V, T, P, S)$ è una grammatica di tipo 1 o dipendente dal contesto se ogni $\alpha \rightarrow \beta \in P$ è tale che $\alpha \in(V \cup T)^{+}, \beta \in(V \cup T)^{+} e$ il lato destro di ogni produzione ha lunghezza almeno pari al lato sinistro
+$$
+\forall \alpha \rightarrow \beta \in P \quad |\beta| \geq |\alpha|
+$$
+
+Il nome di "grammatica dipendente dal contesto" deriva dal fatto che per ogni $G$ di tipo 1 , esiste $G^{\prime}$ tale che $L(G)=L\left(G^{\prime}\right)$ e in cui le produzioni hanno la forma
+$$
+\alpha_{1} A \alpha_{2} \rightarrow \alpha_{1} \beta \alpha_{2}
+$$
+dove $A$ è una variabile, $\alpha_{1}, \alpha_{2}, \beta$ sono stringhe di variabili e terminali e $\beta \neq \epsilon$. (Quindi anche $G^{\prime}$ è di tipo 1).
+
+Cioè è possibile sostituire $A$ con $\beta$ ma solo se $A$ appare nella stringa in un contesto particolare.
+Alcuni autori adottano come definizione quella in cui le produzioni hanno questo secondo vincolo. Ma la prima formulazione ha vantaggi che scopriremo.
+
+\vspace{5mm}
+
+Una grammatica $G=(V, T, P, S)$ è una grammatica di tipo 2 se ogni $\alpha \rightarrow \beta \in P$ è tale che $\alpha \in V e \beta \in(V \cup T)^{+}$cioè il lato sinistro di ogni produzione $A \rightarrow \beta$ è una variabile $A$ e il lato destro $\beta$ è una stringa non vuota di variabili e terminali.
+
+Possiamo dire che questa definizione coincide con quella data di grammatica context-free?
+
+\vspace{5mm}
+
+Definizione
+Una grammatica $G=(V, T, P, S)$ è una grammatica di tipo 3 o regolare se ogni $\alpha \rightarrow \beta \in P$ è tale che $\alpha \in V$ e $\beta \in T \cup(T \cdot V)$, cioè se ogni produzione è della forma $A \rightarrow a B$ o $A \rightarrow a$, dove $A, B$ sono variabili e a è un terminale.
+
+Nota. Alcuni autori distinguono le grammatiche $G=(V, T, P, S)$ di tipo tre in
+\begin{itemize}
+    \item grammatica lineare destra se ogni $\alpha \rightarrow \beta \in P$ è tale che $\alpha \in V$ e $\beta \in T \cup(T \cdot V)$, cioè se ogni produzione è della forma $A \rightarrow a B $ o $A \rightarrow a$, dove $A, B$ sono variabili e a è un terminale.
+    \item grammatica lineare sinistra se ogni $\alpha \rightarrow \beta \in P$ è tale che $\alpha \in V$ e $\beta \in T \cup(V \cdot T)$, cioè se ogni produzione è della forma $A \rightarrow B a $ o $ A \rightarrow a$, dove $A, B$ sono variabili e a è un terminale.
+Non faremo questa distinzione ma si può intuire che per ogni grammatica lineare destra (risp. sinistra) $G$ esiste una grammatica $G^{\prime}$ lineare sinistra (risp. destra) tale che $L(G)=L\left(G^{\prime}\right)$
+\end{itemize}
+
+Notiamo che per $i=1,2,3$, le grammatiche di tipo $i$ sono un sottoinsieme delle grammatiche di tipo $i-1$.
+\begin{itemize}
+    \item Se $G$ è una grammatica di tipo 3 , allora $G$ è anche di tipo 2
+    \item Se $G$ è una grammatica di tipo 2, allora $G$ è anche di tipo 1
+    \item Se $G$ è una grammatica di tipo 1, allora $G$ è anche di tipo 0
+\end{itemize}
+Più formalmente possiamo enunciare la seguente proprietà, facilmente dimostrabile.
+
+\subsubsection{Teorema (Gerarchia di grammatiche)}
+La classe delle grammatiche di tipo i include strettamente quella delle grammatiche di tipo $i + 1, 0 \leq i \leq 2$.
+\begin{itemize}
+    \item La grammatica definita dalle produzioni
+$$
+\begin{array}{rl}
+S \rightarrow 0 A B & B \rightarrow 01 \\
+1 B \rightarrow 0 & B \rightarrow S A
+\end{array} A \begin{gathered}
+A 1 \rightarrow S B 1 \\
+A 0 \rightarrow S 0 B
+\end{gathered}
+$$
+e di tipo 0 ma non di tipo $1 .$
+    \item  La grammatica definita dalle produzioni
+$$
+\begin{aligned}
+&S \rightarrow a S B C \mid a b c \\
+&c B \rightarrow B c \\
+&b B \rightarrow b b
+\end{aligned}
+$$
+e di tipo 1 ma non di tipo 2 .
+    \item  La grammatica definita dalle produzioni
+$$
+S \rightarrow a S b \mid a b
+$$
+è di tipo 2 ma non di tipo $3 .$
+\end{itemize}
+
+\subsubsection{il problema della parola vuota}
+Guardando le definizioni ci accorgiamo che la definizione di grammatica di tipo 2 non corrisponde alla definizione di grammatica context-free che abbiamo dato.
+
+In generale, le grammatiche di tipo $i, i \geq 1$, non possono generare la parola vuota. Questo non è un problema.
+
+Ricordiamo una definizione data.
+
+Due grammatiche $G, G^{\prime}$ sono equivalenti se generano lo stesso linguaggio, cioè $L(G)=L\left(G^{\prime}\right)$.
+
+\vspace{5mm}
+
+Una soluzione "ad hoc" per le grammatiche di tipo 2
+Conveniamo di chiamare una grammatica $G=(V, T, P, S)$
+\begin{itemize}
+    \item context-free se ogni produzione in $P$ ha la forma $A \rightarrow \beta$, con $A \in V$ e $\beta \in(V \cup T)^{*}$;
+    \item di tipo 2 se ogni produzione in $P$ ha la forma $A \rightarrow \beta$, con $A \in V \in \beta \in(V \cup T)^{+}$
+\end{itemize}
+
+Vogliamo mostrare che un linguaggio è generato da una grammatica context-free se e solo se, a parte eventualmente la parola vuota, è generato da una grammatica di tipo $2 .$
+
+Una grammatica di tipo 2 è un caso particolare di grammatica
+context-free. Quindi se un linguaggio L è generato da una
+grammatica di tipo 2, allora L è generato da una grammatica
+context-free.
+
+Viceversa, data $G=(V, T, P, S)$ CFG che genera $L(G)$ è possibile ottenere $G^{\prime}$ tale che
+\begin{enumerate}
+    \item $G^{\prime}$ non ha $\epsilon$-produzioni, cioè ogni produzione in $G^{\prime}$ ha la forma $A \rightarrow \beta$, dove $A$ è una variabile e $\beta$ è una stringa non vuota di variabili e terminali. (Quindi $G^{\prime}$ è di tipo 2);
+    \item $G^{\prime}$ genera $L(G) \backslash\{\epsilon\}$, cioè $L\left(G^{\prime}\right)=L(G) \backslash\{\epsilon\}$.
+Omettiamo la prova. La prova del punto 1 è costruttiva. Ovviamente se $\epsilon \notin L(G)$ allora $L\left(G^{\prime}\right)=L(G)$.
+\end{enumerate}
+
+- Nota Se $G=(V, T, P, S)$ è una grammatica di tipo 2, la grammatica $G^{\prime}=\left(V^{\prime}, T, P^{\prime}, S^{\prime}\right)$, dove $S^{\prime} \notin V, V^{\prime}=V \cup\left\{S^{\prime}\right\}$ e $P^{\prime}=P \cup\left\{S^{\prime} \rightarrow S, S^{\prime} \rightarrow \epsilon\right\}$ genera $L(G) \cup\{\epsilon\}$, cioè
+$$
+L\left(G^{\prime}\right)=L(G) \cup\{\epsilon\}
+$$
+
+- Esempio: Sia G la grammatica definita da
+$$
+S \rightarrow a S b \mid a b
+$$
+Sia $G^{\prime}$ la grammatica definita da
+$$
+S^{\prime} \rightarrow S|\epsilon, \quad S \rightarrow a S b| a b
+$$
+$$
+\begin{aligned}
+&L(G)=\left\{a^{n} b^{n} \mid n \geq 1\right\}, \\
+&L\left(G^{\prime}\right)=\left\{a^{n} b^{n} \mid n \geq 0\right\}=L(G) \cup\{\epsilon\} .
+\end{aligned}
+$$
+
+Nota
+
+Esiste una soluzione "più elegante" applicabile a tutti e tre i tipi di grammatiche.
+
+Risultato preliminare)
+
+Data $G$ di tipo $i, i=1,2,3$, possiamo sempre trovare $G^{\prime}$ dello stesso tipo ed equivalente a $G$ tale che il simbolo iniziale di $G^{\prime}$ non appaia alla destra di nessuna produzione.
+
+Sia $G=(V, T, P, S)$ una grammatica di tipo $i, i=1,2,3$.
+Sia $G^{\prime}=\left(V^{\prime}, T, P^{\prime}, S^{\prime}\right)$, con $S^{\prime} \notin V, V^{\prime}=V \cup\left\{S^{\prime}\right\}$ e dove $P^{\prime}$ è
+l'insieme delle produzioni in P più tutte le produzioni $S^{\prime} \rightarrow \alpha$, dove $S \rightarrow \alpha \in P$, cioè
+$$
+P^{\prime}=P \cup\left\{S^{\prime} \rightarrow \alpha \mid S \rightarrow \alpha \in P\right\}
+$$
+Allora
+\begin{enumerate}
+    \item $G^{\prime}$ è una grammatica di tipo $i, i=1,2,3$;
+    \item $L\left(G^{\prime}\right)=L(G)$;
+    \item Il simbolo iniziale di S' non compare alla destra di nessuna produzione in $G^{\prime}$.
+\end{enumerate}
+
+Esempio: Sia G la grammatica definita da
+$$
+S \rightarrow a S b \mid a b
+$$
+La grammatica $G^{\prime}$ definita da
+$$
+S^{\prime} \rightarrow a S b \mid a b, \quad S \rightarrow a S b \| a b
+$$
+è equivalente a $G$ e inoltre il simbolo iniziale non compare alla destra di nessuna produzione in $G$.
+
+\vspace{5mm}
+
+Sia $S^{\prime}$ il simbolo iniziale di $G^{\prime} .$ Se $S^{\prime}$ non appare alla destra di nessuna produzione in $G^{\prime}$ e aggiungiamo $S^{\prime} \rightarrow \epsilon$, questa produzione potrebbe essere usata solo come come primo (e unico) passo in una derivazione.
+
+\subsubsection{Estensione della definizione}
+Una grammatica $G=(V, T, P, S)$, con $V, T$ insiemi finiti e disgiunti, $S \in V$ è
+\begin{itemize}
+    \item di tipo 1 se ogni produzione in $P$ ha la forma $\alpha \rightarrow \beta$, $\alpha, \beta \in(V \cup T)^{+}$e $|\beta| \geq|\alpha|$.
+    \item di tipo 2 se ogni produzione in $P$ ha la forma $A \rightarrow \beta$, con $A \in V$ e $\beta \in(V \cup T)^{+}$
+    \item di tipo 3 se ogni produzione in $P$ ha la forma $A \rightarrow a B$ o $A \rightarrow a$, dove $A, B$ sono variabili e a è un terminale.
+\end{itemize}
+In più permettiamo che $S \rightarrow \epsilon$ sia in $P$ a condizione che $S$ non compaia alla destra di nessuna produzione.
+
+Confrontiamo le classi di linguaggi generati con la vecchia e la nuova definizione.
+\begin{itemize}
+    \item Se $L$ è generato da una grammatica di tipo $i, i=1,2,3$, secondo la nuova definizione ed $\epsilon \notin L$, allora $L$ è generato da una grammatica di tipo $i, i=1,2,3$, secondo la vecchia definizione.
+    \item Se L è generato da una grammatica $G$ di tipo $i, i=1,2,3$, secondo la nuova definizione ed $\epsilon \in L$, elimino in $G$ la produzione $S \rightarrow \epsilon$ (usata solo per generare $\epsilon$ ) e ottengo una grammatica che genera $L \backslash\{\epsilon\}$ ed è di tipo $i, i=1,2,3$, secondo la vecchia definizione.
+    \item Se $L$ è generato da una grammatica di tipo $i, i=1,2,3$, secondo la vecchia definizione, allora $L$ è generato da una grammatica di tipo $i, i=1,2,3$, secondo la nuova definizione.
+\end{itemize}
+
+Data $G=(V, T, P, S)$ di tipo $i, i \geq 1$, (vecchia definizione) che genera $L(G)$, possiamo trovare una grammatica $G^{\prime}=\left(V^{\prime}, T, P^{\prime}, S^{\prime}\right)$ di tipo $i, i \geq 1$, (nuova definizione) che genera $L(G) \cup\{\epsilon\}$ come segue
+\begin{itemize}
+    \item introduciamo una nuova variabile $S^{\prime}$ che sarà il simbolo iniziale di $G^{\prime}: V^{\prime}=V \cup\left\{S^{\prime}\right\}$
+    \item definiamo $P^{\prime}$ come l'insieme delle produzioni in $P$ più tutte le produzioni $S^{\prime} \rightarrow \alpha$, dove $S \rightarrow \alpha \in P$.
+    \item aggiungiamo la produzione $S^{\prime} \rightarrow \epsilon$. Quindi
+$$
+P^{\prime}=P \cup\left\{S^{\prime} \rightarrow \alpha \mid S \rightarrow \alpha \in P\right\} \cup\left\{S^{\prime} \rightarrow \epsilon\right\}
+$$
+\end{itemize}
+
+Alla gerarchia di grammatiche introdotta corrisponde una gerarchia sui linguaggi generati.
+
+Un linguaggio $L$ è di tipo i se esiste una grammatica $G$ di tipo i tale che $L=L(G)$.
+
+Otteniamo quattro classi di linguaggi, i linguaggi di tipo 0,1, 2,3 . Le quattro classi formano la
+\textbf{Gerarchia di Chomsky}.
+
+\vspace{5mm}
+
+Un linguaggio $L$ è di tipo i se esiste una grammatica $G$ di tipo i tale che $L=L(G)$.
+
+Otteniamo quattro classi di linguaggi, i linguaggi di tipo 0,1, 2,3 .
+Che relazione c'è tra le quattro classi?
+
+Siccome la classe delle grammatiche di tipo $i$ include strettamente quella delle grammatiche di tipo $i+1$, possiamo dire che ogni linguaggio di tipo $i+1$ è anche di tipo $i$, $0 \leq i \leq 2$.
+Cioè la classe dei linguaggi di tipo $i+1$ è contenuta in quella dei linguaggi di tipo $i, 0 \leq i \leq 2$.
+Possiamo però dimostrare il seguente più forte risultato.
+
+\vspace{5mm}
+
+Teorema
+
+La classe dei linguaggi di tipo $i+1$ è contenuta strettamente in quella dei linguaggi di tipo $i, 0 \leq i \leq 2$.
+
+Per provare questo teorema occorre esibire:ù
+\begin{itemize}
+    \item Un linguaggio generato da una grammatica di tipo zero che
+non può essere generato da una grammatica dipendente dal
+contesto.
+    \item  Un linguaggio generato da una grammatica dipendente dal
+contesto che non può essere generato da una grammatica
+libera dal contesto.
+    \item Un linguaggio generato da una grammatica libera dal contesto
+che non può essere generato da una grammatica regolare.
+\end{itemize}
+Abbiamo definito una gerarchia di grammatiche e una
+corrispondente gerarchia di linguaggi.
+Vedremo una corrispondente gerarchia di automi che ci
+permetterà di fornire gli esempi di linguaggi che separano le
+classi.
+
+\subsubsection{Linguaggi formali e di programmazione}
+Esaminiamo, attraverso alcuni esempi, le relazioni tra le classi di linguaggi appena introdotte e alcuni aspetti dei linguaggi di programmazione, astraendo da molti dettagli di cui si deve tener conto quando si tratti di linguaggi di programmazione reali.
+$$
+\begin{aligned}
+&L_{1}=\left\{w c w \mid w \in\{a, b\}^{+}\right\} \\
+&L_{1}^{\prime}=\left\{a^{n} b^{m} c^{n} d^{m} \mid n, m \geq 1\right\}
+\end{aligned}
+$$
+Questi linguaggi sono di tipo 1 (dipendenti dal contesto), ma non context-free.
+
+Un'interpretazione di $L_{1}$ vede il prefisso $w$ come la dichiarazione di un identificatore con tale nome, c come (una parte di) un programma, e il suffisso $w$ come l'uso dell'identificatore medesimo.
+Per quanto riguarda le stringhe di $L_{1}^{\prime}$ potremmo supporre di avere due procedure con $n$ ed $m$ parametri rispettivamente. Allora possiamo interpretare $a^{n}$ e $b^{m}$ come i parametri formali che appaiono nella dichiarazione delle procedure in questione e $c^{n}$ e $d^{m}$ come i parametri attuali delle loro chiamate.
+
+\vspace{5mm}
+
+In generale, un linguaggio di programmazione non è
+context-free.
+
+La sintassi dei linguaggi di programmazione è data in termini
+di linguaggi context-free, e quindi l'aspetto definizione-uso
+contestuale non è esprimibile da una grammatica libera.
+Infatti, il controllo che un identificatore sia definito prima del
+suo uso o che i parametri attuali siano tanti quanti i formali
+viene solitamente fatto, per ragioni di efficienza, da un
+componente specifico dei compilatori o degli interpreti.
+
+Come ulteriore esempio, interpretando il carattere a come l'apertura di una delle tante parentesi usate nei programmi, per esempio (, e il carattere $b$ come la parentesi chiusa, per esempio ), una stringa appartiene a $\left\{a^{n} b^{n} \mid n \geq 1\right\}$ se tutte le parentesi aperte vengono chiuse.
+
+Più in generale, una stringa di parentesi (, ) è bilanciata se è
+possibile associare una parentesi aperta a quella chiusa
+immediatamente alla sua destra e, cancellandole e ripetendo il
+procedimento, si giunge a cancellarle tutte.
+
+\vspace{5mm}
+
+Una stringa di parentesi $(,)$ è bilanciata se soddisfa le seguenti due regole.
+(1) Una stringa bilanciata contiene lo stesso numero di parentesi aperte e chiuse.
+(2) Seguendo la stringa da sinistra a destra il suo profilo non diventa mai negativo, dove il profilo è il valore ottenuto sottraendo al numero delle parentesi aperte incontrate il numero delle parentesi chiuse incontrate.
+
+Ad esempio ()()$,(()()), \epsilon$ sono bilanciate mentre $)($ e $(()$ non lo sono.
+
+\subsubsection{Definizione ricorsiva delle stringhe di parentesi bilanciate}
+\begin{itemize}
+    \item PASSO BASE: La stringa vuota $\epsilon$ è una stringa di parentesi bilanciata.
+    \item PASSO RICORSIVO: Se $x$ e $y$ sono stringhe di parentesi bilanciate, allora anche $(x) y$ è una stringa di parentesi bilanciata.
+$G_{b a l}=(\{B\},\{(,)\}, P, B$, dove $P$ consiste nelle produzioni $B \rightarrow B B|(B)| \epsilon$
+genera tutte e sole le stringhe di parentesi bilanciate.
+\end{itemize}
+
+
+
+
+
+
+\let\cleardoublepage\clearpage
+\subsubsection{}
+% \xRightarrow[G]{*}
+% \underset{r m}{\stackrel{*}{\Rightarrow}}

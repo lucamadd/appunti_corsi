@@ -1,0 +1,58 @@
+\chapter{Basi teoriche}
+La compressione dati si è evoluta come sottoinsieme del campo di Teoria dell'Informazione diventando poi un campo a sé stante.
+
+\section{Alfabeto e sorgente}
+Un alfabeto è un insieme finito di caratteri contenente almeno un elemento. Gli elementi di un alfabeto sono chiamati \textit{caratteri}. Una \textit{stringa} su un alfabeto è una sequenza di caratteri dell'alfabeto.
+
+\vspace{5mm}
+
+\textbf{Definizione:} Sia \(\Sigma = \{s_{1} \dots s_{k}\}\), \(k \geq 1\) un alfabeto. Una \textbf{sorgente} è un processo che sequenzialmente produce caratteri di \(\Sigma\). \(\Sigma\) è chiamato \textbf{alfabeto sorgente}. Una sorgente è detta \textbf{del primo ordine} se le probabilità indipendenti di emissione \(p_1 \dots p_k\), che danno come somma \(1\), sono associate con il corrispondente elemento di \(\Sigma\). Di norma un carattere \(s_i\) avrà probabilità \(p_i\) di essere il prossimo carattere che viene trasmesso.
+
+\vspace{5mm}
+
+Nelle sorgenti del primo ordine l'emissione del carattere \textit{i-esimo} non dipende dai caratteri che sono stati trasmessi precedentemente. Vediamo ora due esempi di sorgente che possono tornare utili.
+
+\subsection{Sorgente costante K-aria}
+È definita su un certo alfabeto \(\Sigma = \{s_{1} \dots s_{k}\}\), e nonostante sia \(k \geq 1\) abbiamo che all'interno di questo alfabeto viene scelto sempre lo stesso carattere come prossimo carattere da trasmettere. Detto \(s_i\) questo carattere, avremo che la probabilità \(p_i\) sarà sempre \(1\), mentre per ogni \(s_j\) con \(j \neq i\) avremo che \(p_j = 0\).
+
+Questa sorgente ha il minimo grado di \textit{"sorpresa"}, ovvero un osservatore esterno che conosce il tipo di sorgente non sarà sorpreso a veder trasmettere sempre lo stesso carattere.
+
+\subsection{Sorgente casuale K-aria}
+È definita anch'essa su un alfabeto \(\Sigma = \{s_{1} \dots s_{k}\}\), con \(k \geq 1\). Il prossimo carattere che viene emesso viene scelto in modo uniforme e indipendente tra tutti i caratteri, quindi abbiamo che per ogni \(s_i\), \(p_i = \frac{1}{k}\). L'osservatore non potrà fare nessuna predizione sul prossimo carattere perché tutti i caratteri hanno la stessa probabilità di emissione. Questa sorgente ha il livello di "sorpresa" più alto.
+
+\section{Entropia}
+Possiamo identificare il concetto di sorpresa visto finora con il concetto di entropia, espresso formalmente di seguito.
+
+\vspace{5mm}
+
+\textbf{Definizione:} Sia \(k \geq 1\) un intero e sia \(S\) una sorgente di primo ordine che genera i caratteri dall'alfabeto
+
+\[ \Sigma = \{s_{1} \dots s_{k}\}\]
+
+con probabilità indipendenti \(p_{1} \dots p_{k}\). L'entropia di \(S\) in base \(r, r > 1\), è data da:
+
+\[H_r(S) = \sum_{i=1}^k p_i \log_r \left(\frac{1}{p_i}\right)\]
+
+Quando la base non è specificata assumiamo che sia 2, in quanto ragioniamo in logica binaria, per cui abbrevieremo \(H_2(S)\) come \(H(S)\).
+
+Questa informazione mi dice che per comprimere un oggetto ho bisogno di almeno \(H(S)\) bit se non voglio incorrere in errori. Inoltre è sempre possibile costruire uno schema di codifica che codifica l'output di quella sorgente usando un numero di bit pari all'entropia. Questo è indicato nel \textbf{Teorema fondamentale della codifica sorgente}:
+
+\vspace{5mm}
+
+\textbf{Teorema:} Sia \(S\) una sorgente di primo ordine su un alfabeto \(\Sigma\) e sia \(\Gamma\) un alfabeto di \(r > 1\) caratteri. Codificare i caratteri di \(S\) con i caratteri di \(\Gamma\) richiede una media di \(H_r(S)\) caratteri di \(\Gamma\) per ogni carattere di \(\Sigma\). Inoltre, per ogni numero reale \(\epsilon > 0 \) esiste uno schema di codifica che usa in media \(H_r(S) + \epsilon\) caratteri di \(\Gamma\) per ogni carattere di \(\Sigma\).
+
+\section{Sorgenti di ordine i-esimo}
+Raramente in scenari reali le sorgenti sono del primo ordine. Tipicamente la probabilità che la sorgente emetta un carattere dipende dai caratteri che ha emesso in passato. Ad esempio in un file di testo, consideriamo una sorgente che emette parole italiane. Se troviamo il carattere \textit{Q} allora è molto probabile che il carattere successivo sia una \textit{U}. Questa osservazione porta alla definizione teorica di \textbf{sorgente di ordine i-esimo}, con \(i \ge 1\), dove \textit{i} denota il numero di caratteri dal quale il carattere che viene emesso dipende. Ad esempio, in una sorgente di ordine 2 il prossimo carattere dipende dal precedente, in una sorgente di ordine 3 il prossimo carattere dipende dai due precedenti, e così via. 
+
+
+\section{Considerazioni importanti}
+L'importanza dell'entropia nella compressione dati ci dà un \textit{lower bound} per la compressione che possiamo ottenere. Per una certa sorgente quindi esisterà una certa quantità detta \textit{entropia} sotto cui non possiamo scendere per la compressione. Tipicamente gli algoritmi di compressione lossless che riescono a comprimere al limite dell'entropia sono detti ottimali. Vedremo che le considerazioni che facciamo sulle compressioni vanno applicate nella pratica a sorgenti finite che emettono una quantità finita di bit, e non a sorgenti infinite.
+
+Possiamo quindi elencare tre importanti considerazioni che vanno fatte:
+\begin{itemize}
+    \item Dato che il limite della compressione lossless è dato dall'entropia, e nel caso di sorgenti casuali k-arie abbiamo a che fare con un'entropia massima, i dati casuali non possono essere compressi perché non contengono ridondanza. Se proviamo a comprimere tali dati, la dimensione del compresso sarà uguale o maggiore a quella dell'originale.
+    \item I dati che sono compressi da un compressore ottimale (cioè che riesce ad arrivare al limite dettato dall'entropia) non possono essere ulteriormente compressi.
+    \item Non si può garantire che un compressore ottenga una performance definita su tutte le istanze di un certo tipo di dati a causa del fatto che abbiamo a che fare con sequenze finite di dati e non infinite.
+\end{itemize}
+
+\let\cleardoublepage\clearpage

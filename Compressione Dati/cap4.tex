@@ -1,0 +1,305 @@
+\chapter{Compressione del testo}
+I metodi visti finora sono considerati strumenti di codifica piuttosto che di compressione, che usavano un metodo statistico per codificare i simboli emessi dalla sorgente. La sostituzione testuale si basa sulla costruzione di un modello che viene poi effettivamente utilizzato per comprimere il testo.
+
+\section{Metodi di sostituzione testuale on-line}
+
+I metodi di compressione basati su dizionari non vanno a codificare i caratteri sorgente come stringhe di bit a lunghezza variabile, ma prendono invece in input stringhe di lunghezza variabile dalla sorgente e li codificano come \textbf{indici}, o \textit{tokens}. Se gli indici hanno una dimensione più piccola delle parole che vanno a rimpiazzare, otteniamo ovviamente un risparmio nella codifica e quindi compressione.
+
+Questo modello è semplice da comprendere perché è quello che utilizziamo nella vita di tutti i giorni con gli elenchi telefonici o con un codice postale, ad esempio la stringa 84100 sappiamo che codifica la stringa "Città di Salerno".
+
+Vediamo ora l'algoritmo di codifica, che legge un flusso di caratteri su \(\Sigma\) e scrive un flusso di bit, e l'algoritmo di decodifica, che riceve un flusso di bit e produce un flusso di caratteri su  \(\Sigma\). 
+
+\subsubsection{Algoritmo di codifica}
+
+\begin{mdframed}[backgroundcolor=gray!20,shadow=false]
+
+(1) Initialize the local dictionary \(D\) with the set \(INIT\).
+
+\vspace{3mm}
+
+(2) \textbf{repeat forever}
+
+\vspace{3mm}
+
+\(\>\>\>\>\>\)(a) Get the current match:
+
+\(\>\>\>\>\>\>\>\)\(t := MH(inputstream)\)
+
+\(\>\>\>\>\>\>\>\)Advance the input stream forward by \(|t|\) characters.
+
+\(\>\>\>\>\>\>\>\)Transmit \(\lceil \log_2 |D| \rceil\) bits corresponding to \(t\).
+
+\vspace{3mm}
+
+\(\>\>\>\>\>\)(b) Update the local dictionary \(D\):
+
+\(\>\>\>\>\>\>\>\)\(X := UH(D)\)
+
+\(\>\>\>\>\>\>\>\)\textbf{while} \(X \neq \{\}\) and (\(D\) is not full or \(DH(D) \neq \{\}\)) \textbf{do begin}
+
+\(\>\>\>\>\>\>\>\>\>\>\>\>\>\>\)Delete an element \(x\) from X.
+
+\(\>\>\>\>\>\>\>\>\>\>\>\>\>\>\)\textbf{if} \(x\) is not in \(D\) \textbf{then begin}
+
+\(\>\>\>\>\>\>\>\>\>\>\>\>\>\>\)\(\>\>\>\>\>\>\>\>\>\>\>\>\>\>\)\(\>\>\>\>\>\>\>\>\>\>\>\>\>\>\)\textbf{if} \(D\) is full \textbf{then} Delete \(DH(D)\) from \(D\).
+
+\(\>\>\>\>\>\>\>\>\>\>\>\>\>\>\)\(\>\>\>\>\>\>\>\>\>\>\>\>\>\>\)\(\>\>\>\>\>\>\>\>\>\>\>\>\>\>\)Add \(x\) to \(D\).
+
+\(\>\>\>\>\>\>\>\>\>\>\>\>\>\>\)\(\>\>\>\>\>\>\>\>\>\>\>\>\>\>\)\(\>\>\>\>\>\>\>\>\>\>\>\>\>\>\)\textbf{end}
+
+\(\>\>\>\>\>\>\>\>\>\>\>\>\>\>\)\textbf{end}
+\end{mdframed}
+
+\vspace{5mm}
+
+L'idea fondamentale è quella di avere da una parte un dizionario di frasi e dall'altra un insieme di frasi emesse dalla sorgente. Vogliamo codificare l'output della sorgente attraverso puntatori nel dizionario. Se il dizionario è conosciuto dal compressore e dal decompressore, possiamo usarlo per codificare e decodificare il testo da comprimere.
+
+In generale le due parti non hanno un dizionario fisso durante l'esecuzione di questi algoritmi, ma lo compongono e lo modificano man mano che arriva altro output dalla sorgente. 
+
+\vspace{5mm}
+
+Vediamo ora cosa fa l'algoritmo di codifica: \textbf{(1)} inizia con una fase di inizializzazione del dizionario locale, che chiameremo \(INIT\), con un insieme iniziale di stringhe. \textbf{(2)} Poi inizia il ciclo principale (finché non finisce il messaggio emesso dalla sorgente). \textbf{(a)} Prendiamo il match corrente e vediamo qual è il match migliore tra la stringa di caratteri emessa dalla sorgente e quello che si trova nel dizionario. Trovato il match corrente, chiamato \(t\), ci spostiamo di \(|t|\) caratteri in avanti sullo spazio tra la fine di quella parola e la successiva, e trasmettiamo \(\lceil \log_2 |D| \rceil\), che corrispondono al match appena trovato. \textbf{(b)} Poi si aggiorna il dizionario locale: la funzione \(UH\) (\textit{Update Heuristic}) aggiunge al dizionario una o più frasi che dipendono dal match corrente. Chiamiamo questo insieme di stringhe \(X\). Per aggiungere al dizionario si controlla se c'è spazio\footnote{È buona norma avere un dizionario non troppo grande, altrimenti costerebbe troppo inviare gli indici.} o se bisogna cancellare qualcosa (usando la \textit{Deletion Heuristic}). In ogni caso viene aggiunto l'elemento \(x\) al dizionario.
+
+\subsubsection{Algoritmo di decodifica}
+\begin{mdframed}[backgroundcolor=gray!20,shadow=false]
+(1) Initialize the local dictionary \(D\) by performing Step 1 of the encoding algorithm.
+
+\vspace{3mm}
+
+(2) \textbf{repeat forever}
+
+\vspace{3mm}
+
+\(\>\>\>\>\>\)(a) Get the current match:
+
+\(\>\>\>\>\>\>\>\)Receive \(\lceil \log_2 |D| \rceil\) bits.
+
+\(\>\>\>\>\>\>\>\)Obtain the current match \(t\) by a dictionary lookup.
+
+\(\>\>\>\>\>\>\>\)Output the characters of \(t\).
+
+\vspace{3mm}
+
+\(\>\>\>\>\>\)(b) Update the local dictionary \(D\) by performing Step 2b of the encoding algorithm.
+\end{mdframed}
+\vspace{5mm}
+
+Il decompressore riceve una serie di indici e deve andare a sostituire ognuno di questi indici con un elemento del dizionario. L'\(UH\) e la \(DH\) utilizzate dal decompressore sono le stesse del compressore. \textbf{(1)} Il decompressore inizializza il dizionario locale \(D\) andando ad applicare lo step 1 dell'algoritmo di codifica. \textbf{(2)} Inizia poi il ciclo: \textbf{(a)} viene decompresso il match corrente, prendendo l'indice rappresentato come \(\lceil \log_2 |D| \rceil\) bit e a partire da questo indice va a vedere nel dizionario qual è la frase a cui corrisponde. Questo sarà il match corrente i cui caratteri vengono mandati in output. \textbf{(b)} Dopodiché viene aggiornato il dizionario locale utilizzando lo step 2b dell'algoritmo di codifica.
+
+\subsection{Euristiche}
+\begin{itemize}
+    \item \textbf{Initialization heuristic, INIT:} serie di stringhe per inizializzare il dizionario locale. Normalmente l'alfabeto \(\Sigma\) sarà un sottoinsieme di \(INIT\) e quindi si avrà \(|INIT| \leq <D>\).
+    \item \textbf{Match heuristic, MH:} funzione che rimuove dall'input stream una stringa (il match corrente) che è già nel dizionario.
+    \item \textbf{Update heuristic, UH:} funzione che prende il dizionario locale \(D\) e restituisce un insieme di stringhe che dovrebbero essere aggiunte al dizionario se riusciamo a trovare abbastanza spazio per inserirle.
+    \item \textbf{Deletion heuristic, DH:} funzione che prende \(D\) come argomento e restituisce un insieme che è vuoto oppure che contiene una o più stringhe di \(D\) che non fanno parte di \(INIT\) e che possono essere cancellate da \(D\).
+\end{itemize}
+
+Per cui, ricapitolando, \(D\) è inizializzato per contenere almeno i caratteri di \(\Sigma\) (dato che \(\Sigma\) è un sottoinsieme di \(INIT\)) e questi caratteri non possono mai essere cancellati. Da questo deriva che la funzione \(MH\) è sempre ben definita, per cui ogni stringa che va in input all'algoritmo di codifica può sempre essere codificata (nel peggiore dei casi con un carattere alla volta). La codifica è univoca, e i dizionari locali del compressore e del decompressore sono sempre identici (questo perché lo step 2b dell'algoritmo di codifica è uguale allo step 2b dell'algoritmo di decodifica).
+
+\subsection{Puntatori a lunghezza variabile}
+Un'altra osservazione importante è che questi algoritmi passeranno puntatori di lunghezza variabile se \(\lceil \log_2 |INIT| \rceil < \lceil \log_2 <D> \rceil\). Infatti è possibile che inizialmente |D| sia più piccolo di <D> e quindi i puntatori più corti di \(\lceil \log_2 <D> \rceil\) bit possono essere trasmessi. La dimensione dei puntatori aumenta di un bit ogni volta che |D| raggiunge una potenza di 2 fino a quando |D| raggiunge <D>. Un uso più significativo dei puntatori a lunghezza variabile è quello di scegliere dinamicamente la dimensione di <D> oppure far crescere o diminuire di dimensione D. In questo caso viene usata un'euristica.
+
+\section{Metodi basati su static dictionaries}
+Esistono diversi tipi di dizionari. Con un dizionario statico compressore e decompressore condividono un dizionario che già è pieno. Utilizzando questo metodo non viene fatto l'aggiornamento del dizionario perché non cambia, la compressione infatti si basa solo su quello che ho a disposizione, che posso identificare con lo stesso insieme \(INIT\). 
+
+Questo metodo è utile quando la sorgente è conosciuta a priori: in questo caso ha il vantaggio di essere veloce e semplice rispetto agli altri metodi. Inoltre non dovendo aggiornare il dizionario, non si possono verificare errori di inconsistenza tra i due dizionari di compressore e decompressore anche in caso di linea di comunicazione rumorosa o errori di comunicazione; cosa che si può verificare ad esempio con altri metodi.
+
+Se la distribuzione delle voci nel dizionario statico non è uniforme nel testo sorgente, può essere vantaggioso usare puntatori di lunghezza variabile assegnando codici più brevi alle voci che si presentano più frequentemente.
+
+\section{Metodi basati su sliding dictionaries}
+L'algoritmo di compressione LZ77 è basato sun questo metodo. Con il metodo dello \textit{sliding dictionary}, \(INIT = \Sigma\) e il resto del dizionario locale è visto come una finestra scorrevole che passa sopra le stringhe da comprimere. Consideriamo due parametri: \texttt{MAX\_DISPLACEMENT} e \texttt{MAX\_LENGTH} (determinati dalla dimensione del dizionario locale), tali che il dizionario locale consiste di tutte le sottostringhe di lunghezza minore o uguale a \texttt{MAX\_LENGTH} dei precedenti caratteri \texttt{MAX\_DISPLACEMENT} dell'input stream. Consideriamo un puntatore come una coppia di interi \((m,n)\) dove \(m\) è lo spostamento indietro dalla posizione corrente al target del puntatore e \(n\) è la lunghezza del target del puntatore. Lo step 2b degli algoritmi di codifica e decodifica equivale a far scorrere una finestra (sliding window) sull'input stream: possiamo pensare come ai caratteri che entrano da destra e escono a sinistra. In questo caso allora \(UH(D)\) è un insieme costituito da tutte le sottostringhe della finestra di lunghezza \(y\) o inferiore che si sovrappongono a \(t\), quando \(t\) è concatenato all'estremità destra della finestra, e \(DH(D)\) è un insieme di sottostringhe di lunghezza \(|y|\) che si sovrappongono ai caratteri più a sinistra della finestra. Vediamo un esempio:
+
+\vspace{5mm}
+
+\begin{center}
+    \(\leftarrow\) coded text\(\dots\) \fbox{\strut\texttt{sir}\textvisiblespace\texttt{sid}\textvisiblespace \texttt{eastman}\textvisiblespace\texttt{easily}\textvisiblespace\texttt{t}}\fbox{\strut\texttt{eases}\textvisiblespace\texttt{sea}\textvisiblespace\texttt{sick}\textvisiblespace\texttt{seals}} \(\dots\) \(\leftarrow\) text to be read
+\end{center}
+
+La finestra che sto guardando al momento, ovvero \texttt{MAX\_DISPLACEMENT}, parte dalla stringa \texttt{sir} fino a \texttt{easily t}, contando quindi 24 caratteri all'indietro dalla \texttt{t}. Il parametro \texttt{MAX\_LENGTH} mi dice invece quanto può essere lungo al massimo il match. 
+
+\vspace{5mm}
+
+Il principio dell'algoritmo di compressione a sliding window è quello di usare una parte dello stream di input visto in precedenza come dizionario. Il compressore mantiene una finestra sullo stream di input e sposta l'input in quella finestra da destra a sinistra mentre le stringhe di simboli vengono codificate.  
+
+La finestra è divisa in due parti: la parte a sinistra è il buffer di ricerca, ovvero il dizionario corrente, e include i simboli che sono stati recentemente inseriti e codificati. La parte a destra invece è il buffer look-ahead, che contiene il testo ancora da codificare.  Nelle implementazioni pratiche il buffer di ricerca è lungo alcune migliaia di byte, mentre il buffer look-ahead è lungo solo decine di byte.
+
+Nell'esempio che abbiamo visto, la barra verticale tra la \texttt{t} e la \texttt{t} rappresenta la linea di demarcazione attuale tra i due buffer. Assumiamo che il testo \texttt{sir sid eastman easily t} sia già stato compresso, mentre il testo \texttt{eases sea sick seals} deve ancora essere compresso.
+
+\vspace{5mm}
+
+Il compressore scansiona il buffer di ricerca all'indietro (da destra a sinistra) cercando una corrispondenza per il primo simbolo \texttt{e} nel buffer look-ahead. 
+Ne trova uno alla \texttt{e} della parola \texttt{easily}. 
+Questa \texttt{e} è ad una distanza (offset) di 8 dalla fine del buffer di ricerca. 
+Il compressore quindi fa corrispondere il maggior numero possibile di simboli che seguono le due \texttt{e}. Tre simboli corrispondono a \texttt{eas} in questo caso, quindi la lunghezza del match è 3. 
+Il compressore poi continua la scansione all'indietro, cercando di trovare match più lunghi. Nel nostro esempio, c'è un altro match alla parola \texttt{eastman}, con offset 16, che ha la stessa lunghezza. 
+Il codificatore seleziona il match più lungo e prepara il token (16, 3, \texttt{e}).
+Scegliere l'ultimo match anziché il primo semplifica il codificatore, perché in questo modo deve solo tenere traccia dell'ultimo match trovato.
+
+\subsection{Limiti nell'approccio con sliding window}
+LZ77 usa l'assunzione implicita che i modelli nei dati di input
+si verifichino vicini l'uno all'altro.
+I flussi di dati che non soddisfano questo presupposto non vengono compressi correttamente: un esempio comune è il testo dove una certa parola, ad esempio \textit{economia}, ricorre spesso
+ma è distribuita uniformemente in tutto il testo.
+Quando questa parola viene spostata nel buffer look-ahead, la sua occorrenza precedente
+potrebbe essere già stata spostata fuori dal buffer di ricerca.
+Un algoritmo migliore salverebbe le stringhe che ricorrono comunemente nel dizionario
+e non lo farebbe solo scorrere tutto il tempo.
+
+\vspace{5mm}
+
+Un altro svantaggio di LZ77 è la dimensione limitata \(L\) del buffer look-ahead.
+La dimensione delle stringhe che possono matchare è limitata a \(L-1\), ma \(L\) deve essere tenuta piccola
+perché il processo di match delle stringhe implica il confronto di singoli simboli.
+Se la dimensione di \(L\) fosse raddoppiata, la compressione migliorerebbe, poiché sarebbero possibili corrispondenze più lunghe, ma allo stesso tempo sarebbe molto più lento quando cerca
+match lunghi.
+
+
+
+
+\section{Metodi basati su dynamic dictionaries}
+L'algoritmo di compressione LZ78 è basato su questo metodo. Con il metodo della sliding window il dizionario viene aggiornato in modo molto ristretto: viene aggiunto un nuovo match alla destra della finestra e gli viene fatto spazio rimuovendo i caratteri dalla sinistra della finestra.
+Intuitivamente, il metodo del dizionario scorrevole elimina i caratteri all'estremità sinistra della
+della finestra scommettendo che le sottostringhe lì presenti siano quelle che hanno meno probabilità di ripetersi
+di nuovo e aggiunge il match corrente all'estremità destra della finestra scommettendo
+che le sottostringhe lì presenti siano le più probabili a ripetersi. Questa intuizione quindi ci porta a considerare un'euristica di aggiornamento e cancellazione più generale.
+
+\subsubsection{Update Heuristic}
+
+I metodi basati su dizionari dinamici si basano sul fatto che la \textit{Update Heuristic} concatena il match precedente con un insieme di stringhe basate sul match corrente; ovvero se indichiamo con \(pm\) il match precedente, con \(cm\) il match corrente, e con \(INC\) una funzione di incremento che mappa una stringa a un insieme di stringhe, allora avremo che per qualche scelta di \(INC\), varrà che:
+
+\vspace{3mm}
+
+\begin{center}
+\(UH(D) = \) {\(pm\) concatenato con tutte le stringhe di \(INC(cm)\)}
+\end{center}
+
+\vspace{3mm}
+Le seguenti sono tre scelte efficaci per la funzione \(INC\):
+\begin{itemize}
+    \item \textbf{FC, First Character heuristic} - \(INC(cm)\) è il primo carattere di \(cm\).
+    \item \textbf{ID, Identity heuristic} - \(INC(cm)\) è \(cm\).
+    \item \textbf{AP, All-Prefixes heuristic} - \(INC(cm)\) è l'insieme di tutti i prefissi non vuoti di \(cm\) (incluso \(cm\) stesso).
+\end{itemize}
+
+\textbf{Esempio}: Supponiamo che il match precedente sia "THE\_" e il match corrente sia "CAT" (usiamo un trattino basso per indicare uno spazio). Allora \(UD(D)\) contiene i seguenti valori considerando le tre scelte appena viste:
+\begin{itemize}
+    \item \textbf{FC}: {"THE\_C"}
+    \item \textbf{ID}: {"THE\_CAT"}
+    \item \textbf{AP}: {"THE\_C", "THE\_CA", "THE\_CAT"}
+\end{itemize}
+In generale, le euristiche \(FC\) e \(ID\) producono sempre una sola stringa, mentre \(AP\) produce un insieme di stringhe la cui cardinalità è la lunghezza del match corrente. Infatti dall'esempio possiamo vedere come \(AP\) contenga le stringhe prodotte da \(FC\) e \(ID\).
+
+\subsubsection{Deletion Heuristic}
+Tipicamente vengono utilizzate quattro tipologie di deletion heuristic:
+\begin{itemize}
+    \item \textbf{FREEZE}: \(DH(D)\) è la stringa vuota, per cui quando il dizionario è pieno rimane la stessa (viene freezata) da quel momento in poi.
+    \item \textbf{LRU, Least Recently Used}: \(DH(D)\) è la stringa di \(D\) di cui è stato trovato un match meno recentemente di tutte.
+    \item \textbf{LFU, Least Frequently Used}: \(DH(D)\) è la stringa di \(D\) di cui è stato trovato un match meno frequentemente di tutte.
+    \item \textbf{SWAP}: quando il dizionario primario diventa pieno, si inizia a riempire un dizionario secondario, ma la compressione basata sul primo dizionario viene fatta continuare normalmente. Ogni volta il dizionario ausiliario diventa pieno, si invertono dizionario primario e secondario, dopodiché si svuota il dizionario secondario.
+\end{itemize}
+
+\section{LZ78}
+Il metodo LZ78 [Ziv e Lempel 78] non usa una sliding window, ma un dizionario di stringhe precedentemente incontrate.
+Questo dizionario inizia vuoto (o quasi vuoto), e la sua dimensione è limitata solo dalla
+dalla quantità di memoria disponibile.
+Il compressore emette token che hanno due campi: il primo è un puntatore al
+dizionario, mentre il secondo è la codifica di un simbolo.
+I token non contengono la lunghezza di una stringa perché già è implicita nel
+dizionario.
+Ogni token corrisponde ad una stringa di simboli in ingresso, e questa stringa viene aggiunta
+al dizionario dopo che il token viene scritto sullo stream che già è stato compresso.
+
+\vspace{5mm}
+
+Quando si usa l'algoritmo LZ78, sia il codificatore che il decodificatore iniziano con un dizionario quasi
+vuoto. Per definizione, il dizionario ha una singola stringa codificata: la stringa nulla. Ogni carattere che viene letto viene aggiunto alla stringa corrente, e finché la stringa corrente
+ha un match con qualche frase nel dizionario questo processo continua.
+A un certo punto la stringa non avrà più una frase corrispondente nel dizionario, quindi vengono emessi un token e un carattere: in questo modo la stringa corrente è definita come quell'ultimo match con un nuovo carattere
+aggiunto. La nuova frase infine viene aggiunta al dizionario.
+
+\vspace{5mm}
+
+\textbf{Esempio:} supponiamo di dover codificare il testo \texttt{DAD DADA DADDY DADO} con LZ78. Il compressore inizia con un dizionario vuoto. Legge il primo carattere \texttt{D} (che non è presente del dizionario) e crea una coppia (0,\texttt{D}). Di seguito vediamo la tabella che indica i valori utilizzati dall'algoritmo.
+
+\begin{longtable}{>{\hspace{0pt}}m{0.28\linewidth}>{\hspace{0pt}}m{0.334\linewidth}>{\hspace{0pt}}m{0.301\linewidth}} 
+\hline
+\textbf{Output Phrase} & \textbf{Output Character} & \textbf{Encoded String}  \endfirsthead 
+\hline
+0                      & \texttt{D}                         & \texttt{D}                        \\
+0                      & \texttt{A}                         & \texttt{A}                        \\
+1                      & \texttt{''}                        & \texttt{D}                        \\
+1                      & \texttt{A}                         & \texttt{DA}                       \\
+4                      & \texttt{''}                        & \texttt{DA}                       \\
+4                      & \texttt{D}                         & \texttt{DAD}                      \\
+1                      & \texttt{Y}                         & \texttt{DY}                       \\
+0                      & \texttt{''}                        & \texttt{''}                       \\
+6                      & \texttt{O}                         & \texttt{DADO}                    
+\end{longtable}
+
+
+Il risultato finale degli indici è il seguente:
+
+\begin{longtable}{ll}
+0 & \texttt{''}    \endfirsthead
+1 & \texttt{D}     \\
+2 & \texttt{A}     \\
+3 & \texttt{D}     \\
+4 & \texttt{DA}    \\
+5 & \texttt{DA}    \\
+6 & \texttt{DAD}   \\
+7 & \texttt{DY}    \\
+8 & \texttt{''}    \\
+9 & \texttt{DADO} 
+\end{longtable}
+
+Come LZ77, anche LZ78 può impostare la dimensione del dizionario arbitrariamente, e ci sono tipicamente due cose da tenere in conto: la prima è data dal numero di bit allocati nel token di output per la frase da codificare, e la seconda e più importante è considerare quanta CPU utilizza il dizionario. Teoricamente LZ78 dovrebbe comprimere meglio all'aumentare della dimensione del dizionario, ma è solo un discorso teorico nel caso in cui la lunghezza della sorgente da codificare fosse infinita. Nella pratica la compressione soffre al crescere della dimensione del file da codificare. Infatti se ad esempio usiamo una codifica a 16 bit per l'indice della frase, potremo indicizzare 65'536 frasi, inclusa la parola nulla. Le frasi inoltre possono variare nella lunghezza, e vengono salvate in un albero la cui radice è la stringa nulla. Ogni carattere che può essere aggiunto alla stringa nulla è un nuovo arco dell'albero, mentre ogni nuova frase creata rappresenta un nuovo nodo nell'albero.
+
+\begin{figure}[htbp!]
+  \centering
+  \includesvg[inkscapelatex=false, width = 110pt]{4.1}
+\end{figure}
+\FloatBarrier
+
+Un albero del genere può aumentare esponenzialmente, basti pensare che comprimendo file binari con un alfabeto a 8 bit sono possibili 256 branch a ogni nodo. Tipicamente si utilizza una lista di indici per ogni nodo discendente per risparmiare memoria, nonostante questo approccio sia più lento.
+
+Lo svantaggio di LZ78 rispetto a LZ77 è che anche il decompressore deve mantenere in memoria questo albero, mentre in LZ77 l'indice era solo un puntatore o un indice a una posizione precedente nello stream. In LZ78 l'indice è il numero di un nodo nell'albero. Quando il dizionario è pieno si possono attuare diverse strategie: la scelta più sicura solitamente è quella di smettere di aggiungere nuove frasi al dizionario dopo che è pieno, ma non potrebbe essere la scelta migliore. Infatti ad esempio nel caso di compressione di file EXE avremo un cambiamento nella distribuzione del codice per quanto riguarda la parte dei comandi rispetto alla parte dei dati. Se in questo caso continuassimo ad utilizzare il dizionario riempito, ci troveremmo di fronte a un dizionario non aggiornato e quindi che non comprime bene, tuttavia non vorremmo neanche buttare un dizionario che finora ha compresso bene. Se il rapporto di compressione inizia a peggiorare, si scarta quindi il dizionario pieno e se ne inizia uno nuovo, altrimenti si continua a utilizzare quello vecchio senza però aggiungere nuove frasi.
+
+\section{LZW}
+LZW è un'implementazione migliorata di LZ78 che elimina il requisito secondo il quale ogni token dà in output un indice per ogni carattere: produce infatti solo frasi e mai singoli caratteri. Per fare ciò LZW pre-carica il dizionario delle frasi con frasi composte da un solo simbolo utilizzando ogni simbolo dell'alfabeto sorgente.
+
+\vspace{5mm}
+
+\textbf{Esempio:}  Codifichiamo la stringa \texttt{WED WE WEE WEB WET}.
+
+La stringa di input è un insieme di parole inglesi di un dizionario separate dal carattere \texttt{spazio}.
+Inizialmente viene fatto in controllo per vedere se la stringa \texttt{W} è nella tabella: dato che non è presente, viene prodotto il codice per \texttt{spazio} e la stringa \texttt{W} viene aggiunta alla tabella. Dato che il dizionario ha già definiti i codici 0-255 per ogni carattere dell'alfabeto, alla nuova stringa viene assegnato l'indice 256. Dopo che la terza lettera, la \texttt{E}, è stata letta, viene aggiunta la stringa codice \texttt{WE}, e viene prodotto il codice per la lettera \texttt{W}. Nella seconda parola vengono letti i caratteri \texttt{spazio} e \texttt{W}, per cui viene prodotto il codice 256 e la stringa di tre caratteri viene aggiunta alla tabella. Il processo continua finché non è finita la stringa e tutti i codici sono stati prodotti.
+
+\begin{table}
+\centering
+\begin{tabular}{lll} 
+\hline
+\textbf{Caratteri di input} & \textbf{Codice prodotto in output} & Nuovo valore e stringa associata  \\ 
+\hline
+\texttt{W}                           & \texttt{spazio}                             & 256 = \texttt{spazio W}                    \\
+\texttt{E}                           & \texttt{W}                                  & 257 =~ \texttt{WE}                         \\
+\texttt{D}                           & \texttt{E}                                  & 258 =~ \texttt{ED}                         \\
+\texttt{spazio}                      & \texttt{D}                                  & 259 =~ \texttt{D spazio}                   \\
+\texttt{WE}                          & 256                                & 260 =~ \texttt{WE}                         \\
+\texttt{spazio}                      & \texttt{E}                                  & 261 = \texttt{E}                           \\
+\texttt{WEE}                         & 260                                & 262 = \texttt{spazio WEE}                  \\
+\texttt{W}                           & 261                                & 263 = \texttt{E spazio W}                  \\
+\texttt{EB}                          & 257                                & 264 = \texttt{WEB}                         \\
+\texttt{spazio}                      & \texttt{B}                                  & 265 = \texttt{B}                           \\
+\texttt{WET}                         & 260                                & 266 = \texttt{spazio WET}                  \\
+\texttt{<EOF>}                       & \texttt{T}                                  &                                  
+\end{tabular}
+\end{table}
+
+\FloatBarrier
+
+È possibile però che LZW incontri dei problemi nella decompressione quando si incontra un codice non definito in precedenza. Tuttavia è l'unico caso in cui si verifica, per cui basta sollevare un'eccezione e gestirla. 
+
+
+
+
+\let\cleardoublepage\clearpage

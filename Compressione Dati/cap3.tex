@@ -1,0 +1,451 @@
+\chapter{Tecniche di codifica}
+Teoricamente qualsiasi metodo di compressione dati può essere visto come esempio di codifica. In realtà ci renderemo conto che le tecniche standard di codifica occorrono ad un livello più basso rispetto ai metodi di compressione. 
+
+Un esempio di codifica\footnote{Useremo i termini \textit{codifica} e \textit{codice} in maniera intercambiabile.} molto comune è il \textbf{codice a blocchi k-ario}, che mappa ciascun elemento di un insieme finito \(S\) di \(n\) elementi in una stringa di lunghezza \(\lceil \log_k (n) \rceil\) su un alfabeto di dimensioni \(k\). Supponiamo quindi di voler codificare l'output di una sorgente su un certo alfabeto \(\Sigma\) in un alfabeto binario nel modo più efficiente possibile. In questo caso utilizzando la codifica appena vista avrò bisogno di  \(\lceil \log_2 (n) \rceil\) bit per codificare ciascun simbolo di \(\Sigma\). 
+
+Un altro esempio è dato dalla codifica ASCII, che è un codice a blocchi binario che mappa ognuno dei 128 caratteri ASCII in una stringa unica binaria di 8 bit, dove il primo bit è sempre 0.
+
+\vspace{5mm}
+
+\section{Codifica sorgente}
+
+\textbf{Definizione:} Data una sorgente \(S\) e un alfabeto \(\Sigma\), una codifica da \(S\) a  \(\Sigma\) è una funzione \(f\) che mappa ogni elemento di \(S\) a una stringa non vuota su \(\Sigma\). 
+
+\vspace{5mm}
+
+Quindi se ho una sorgente \(S\) che emette simboli su un alfabeto k-ario e voglio codificarlo su \(\Sigma\) che è un alfabeto binario, codificare \(S\) in binario significa prendere ciascun elemento che può essere emesso da \(S\) e codificarlo con una stringa di simboli binari. Il range di \(f\) è chiamato insieme delle \textit{parole codice} di \(f\). Le parole codice della funzione \(f\) nell'esempio precedente saranno tutte le stringhe binarie che codificano elementi di \(S\).
+
+Una funzione \(f\) è \textit{iniettiva} se non mappa mai due elementi nella stessa stringa. Ogni codifica \(f\) può essere estesa a qualsiasi lista finita di elementi definendo:
+
+\[ f(s_{1}, \dots, s_{k}) = \prod_{i=1}^k f(s_i)\]
+
+dove la produttoria indica la concatenazione di stringhe.
+
+Ad esempio, se voglio codificare \(a, b, c \in S\), avrò che \(f(a,b,c)\) sarà la concatenazione della codifica di \(a\), della codifica di \(b\) e della codifica di \(c\).
+
+\section{Codifica univocamente decifrabile}
+Dato che per ora stiamo parlando principalmente di compressione lossless, dovremo assumere che le funzioni di codifica siano iniettive laddove non specificato. Tuttavia, lavorare con funzioni iniettive non assicura la decodificabilità univoca di quello che viene codificato. esserci condizioni in cui date due liste \(L_1\) e \(L_2\) si verifica che f\((L_1) = (L_2)\). Questo ci porta a dare la seguente
+
+\vspace{5mm}
+
+\textbf{Definizione:} Sia \(f\) una codifica da un insieme \(S\) a un alfabeto \(\Sigma\). Una stringa \(\alpha\) su \(\Sigma\) è \textit{univocamente decifrabile} rispetto a \(f\) se vi è al più una lista \(L\) di elementi di \(S\) tali che \(f(L) = \alpha\). Inoltre diremo che \(f\) è univocamente decifrabile se tutte le stringhe su \(\Sigma\) sono univocamente decifrabili rispetto a \(f\).
+
+\vspace{5mm}
+
+\textbf{Esempio:} Sia \(S = \{a,b,c,d,e\}\), \(\Sigma = \{0,1\}\) e sia \(f\) definita come segue:
+
+\[f(a) = 00\]
+\[f(b) = 01\]
+\[f(c) = 10\]
+\[f(d) = 11\]
+\[f(e) = 100\]
+
+Chiaramente, \(f(a,b,c,d,e) = 00011011100\). Inoltre, possiamo verificare che la stringa di bit 00011011100 è univocamente decifrabile rispetto a \(f\). Tuttavia, non tutte le stringhe binarie sono univocamente decifrabili rispetto a \(f\).  Infatti, \(f(cba) = f(ee) = 100100\).
+
+\section{Disuguaglianza di Kraft/MacMillian}
+Una domanda che ci viene naturale per ogni insieme finito \(S\) e per ogni alfabeto \(\Sigma\) è, se le lunghezze delle parole codice sono specificate a priori, quali sono le condizioni necessarie e sufficienti su queste lunghezze per assicurarci che esista una codifica univocamente decifrabile da \(S\) a \(\Sigma\). 
+
+\vspace{5mm}
+
+Il problema è il seguente: ho una sorgente \(S\) con un certo alfabeto sorgente di \(k\) simboli, e un alfabeto di codifica \(\Sigma\) (per semplicità pensiamo all'alfabeto binario). Mi vengono date in anticipo delle lunghezze per quanto riguarda le parole codice, quindi nel mio caso avrò \(k\) lunghezze perché ho \(k\) simboli sorgente. Ad esempio voglio codificare il primo simbolo con 2 bit, il secondo simbolo con 1 bit, il terzo con 3 bit, e così via. Quali sono le condizioni necessarie e sufficiente su queste lunghezze che mi vengono date in anticipo per far sì che esista una codifica univocamente decifrabile da \(S\) a \(\Sigma\)? Il teorema seguente, detto appunto \textit{disuguaglianza di Kraft/MacMillian}, ci dà queste condizioni.
+
+\vspace{5mm}
+
+\textbf{Teorema:} Siano \(S\) e \(\Sigma\) rispettivamente un insieme finito di simboli e un alfabeto di simboli. Se le parole codice sono vincolate ad avere lunghezza \(l_1, \dots, l_{|S|}\), allora una condizione necessaria e sufficiente affinché esista una codifica univocamente decifrabile da \(S\) a \(\Sigma\) è:
+
+\[\sum_{i=1}^{|S|} \left( \frac{1}{|\Sigma|^{l_i}} \right) \leq 1\]
+
+\section{Codici prefissi}
+
+\textbf{Definizione:} Una codifica da un insieme \(S\) ad un alfabeto \(\Sigma\) è un \textit{codice prefisso} se nessuna parola codice è prefisso di un'altra parola codice. 
+
+\vspace{5mm}
+
+Nell'esempio precedente avevamo a che fare con un codice che non era prefisso perché \(f(c) = 10\) è prefisso di \(f(e) = 100\). Infatti quel codice non è né univocamente decifrabile né prefisso.
+
+Un codice prefisso è sempre univocamente decifrabile, poiché quando vado a leggere una stringa da sinistra a destra la fine di una parola codice può essere determinata proprio nel momento in cui viene raggiunta, perché non ci sono altre parole codice che sono prefisso di quella. Per questo motivo, i codici prefissi sono spesso chiamati \textit{codici istantanei}, perché riesco a fare il parsing da sinistra a destra in modo semplice e immediato, leggendo una parola codice alla volta, dato che nessuna è prefisso di un'altra. 
+
+Non è vero il contrario: un codice non prefisso potrebbe essere univocamente decifrabile, come possiamo vedere di seguito.
+
+\vspace{5mm}
+
+\textbf{Esempio:} Consideriamo il codice \(f\) dall'insieme \(S = \{a,b,c,d\}\) all'alfabeto \(\Sigma = \{0,1\}\) definito come segue:
+
+\[f(a) = 0\]
+\[f(b) = 01\]
+\[f(c) = 011\]
+\[f(d) = 111\]
+
+Chiaramente \(f\) non è un codice prefisso, perché \(f(a)\) è prefisso di \(f(b)\) e \(f(c)\); \(f(b)\) è prefisso di \(f(c)\). Tuttavia, è univocamente decifrabile.
+
+\vspace{5mm}
+
+\textbf{Teorema:} Esiste un codice prefisso (e quindi un codice univocamente decifrabile) per qualsiasi sequenza di parole codice che abbiano delle lunghezze che soddisfano la disuguaglianza di Kraft/MacMillian.
+
+\section{Codifica di Huffman}
+Questo teorema ci porta a definire una serie di algoritmi di codifica tra cui la codifica di Huffman, che probabilmente è la tecnica di codifica più conosciuta. Nonostante potrebbe anche essere visto come algoritmo di compressione, in realtà vedremo che è solo una codifica.
+
+Invece di utilizzare una codifica a blocchi k-aria, cioè codificare ogni carattere emesso dalla sorgente con una stringa di lunghezza fissa di simboli dell'alfabeto di codifica, usiamo la codifica di Huffman per codificare ciascun simbolo emesso dalla sorgente con una stringa che avrà un numero variabile di bit. I caratteri che verranno emessi con più probabilità verranno codificati con una stringa di lunghezza più corta mentre i simboli meno probabili saranno codificati con una stringa di lunghezza maggiore. La codifica di Huffman costruisce delle parole codice che sono prefisse. Inoltre, nonostante sia una codifica a lunghezza variabile, sarà univocamente decifrabile. Per decodificare un flusso di caratteri codificati tramite Huffman utilizzeremo un albero binario di decodifica. 
+
+\vspace{5mm}
+
+Data una sorgente \(S\), supponiamo di conoscere le sue probabilità del primo ordine. Con \textit{probabilità del primo ordine} indichiamo la probabilità di ogni carattere di \(S\) di essere emesso come prossimo carattere. Supponiamo poi di conoscere ogni carattere \(x\) di \(S\) e per ogni carattere di conoscere la probabilità di emissione di quel carattere \(p_x\). Anziché assegnare un codice di \(\lceil \log_{|\Sigma|}|S| \rceil\) bit a ogni elemento di \(S\) (come sarebbe stato fatto con una codifica a blocchi), possiamo salvare spazio assegnando parole codice più corte a caratteri con più probabilità di essere emessi dalla sorgente e parole codice più lunghe a caratteri meno probabili. 
+
+\begin{mdframed}[backgroundcolor=gray!20,shadow=false]
+\subsubsection{Algoritmo}
+(1) Initialize \(FOREST\) to have a 1-node trie \(T_x\) for each element \(x\) of \(S\).
+
+\(\>\>\>\>\>\>\>\)Set \(weight(T_x) = p_x,\)
+
+\vspace{5mm}
+
+(2) \textbf{while} \(|FOREST| > 1\) \textbf{do begin}
+\begin{quote}
+Let \(Y\) and \(Z\) be the two tries in \(FOREST\) of lowest weight (resolve ties arbitrarily). Combine \(Y\) and \(Z\) by creating a new root \(r\) with weight \(weight(Y) + weight(Z)\) that is attached to one of \(Y\) and \(Z\) via a \(0\) and to the other via a \(1\) (the order doesn't matter).
+
+\textbf{end}
+
+\end{quote}
+
+
+\end{mdframed}
+L'algoritmo di Huffman parte da una foresta di alberi. Inizializziamo questa foresta di alberi in maniera tale che abbia tanti alberi di un singolo nodo quanti sono i caratteri della sorgente \(S\), e per ogni \(x\) il peso di quell'albero \(T_x\) sarà posto uguale alla probabilità \(p_x\). 
+
+Poi c'è il ciclo che costruisce man mano l'albero di codifica: finché la foresta ha più di un albero, si prendono i due alberi che hanno peso più basso (e quindi hanno associato il carattere che ha probabilità di emissione più bassa), si combinano in un unico albero creando una nuova radice \(r\) con peso uguale alla somma dei pesi dei due alberi, e che ha attaccati come figli i due alberi scelti, etichettati rispettivamente con 0 e con 1. Questo ciclo continua finché non si ottiene un singolo albero binario, che sarà il nostro albero di Huffman. 
+
+\vspace{5mm}
+
+\textbf{Esempio:} Supponiamo di voler costruire un albero di Huffman dati i seguenti simboli e la loro frequenza:
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{ccccc}
+15 & 7 & 6 & 6 & 5  \\
+A  & B & C & D & E 
+\end{tabular}
+\end{table}
+
+Il primo passo è quello di costruire una foresta contenente i cinque alberi. Dopodiché prendiamo i due alberi con peso minore, ovvero quelli dei simboli \(D\) e \(E\), e li combiniamo in un albero la cui nuova radice avrà peso 11 (6+5), ed etichettiamo i rami con 0 e 1.
+
+\begin{figure}[htbp!]
+  \centering
+  \includesvg[inkscapelatex=false, width = 50pt]{3.1}
+\end{figure}
+\FloatBarrier
+
+Facciamo la stessa cosa e prendiamo i due alberi con probabilità minore. In questo caso sono \(B\) e \(C\), per cui costruiamo un nuovo albero con peso 13 (7+6), che si aggiunge alla foresta, che ora è:
+
+\begin{figure}[htbp!]
+  \centering
+  \includesvg[inkscapelatex=false, width = 170pt]{3.2}
+\end{figure}
+\FloatBarrier
+
+Continuiamo nel ciclo e prendiamo i due alberi con peso minore, quindi 13 e 11, e costruiamo un altro albero che avrà peso 24. Il risultato è il seguente:
+
+\begin{figure}[htbp]
+  \centering
+  \includesvg[inkscapelatex=false, width = 170pt]{3.3}
+\end{figure}
+
+\FloatBarrier
+
+A questo punto restano due alberi, quelli con peso 15 e 24. Costruiamo allora l'albero finale:
+
+\begin{figure}[htbp!]
+  \centering
+  \includesvg[inkscapelatex=false, width = 170pt]{3.4}
+\end{figure}
+
+\FloatBarrier
+
+Per determinare la codifica per ogni simbolo, basta percorrere l'albero dalla radice fino al simbolo desiderato. Per cui la codifica finale sarà:
+
+\begin{table}[htbp!]
+\centering
+\begin{tabular}{cc}
+A & 0    \\
+B & 100  \\
+C & 101  \\
+D & 110  \\
+E & 111 
+\end{tabular}
+\end{table}
+
+\FloatBarrier
+
+Abbiamo inoltre costruito un codice prefisso e quindi univocamente decifrabile, perché nessuna parola codice sarà prefissa di un'altra: quando arrivo a una foglia mi fermo, non costruisco altre parole codice a partire da quella foglia. 
+
+Inoltre, possiamo notare che i simboli che hanno più probabilità sono codificati con stringhe di bit più corte, in particolare A, che aveva probabilità maggiore, è codificata con una stringa lunga 1 bit. Per questo motivo la codifica di Huffman applica una compressione migliore rispetto a un codice a blocchi k-ario standard. 
+
+\vspace{5mm}
+
+La codifica di Huffman è molto utilizzata in applicazioni di compressione ben note, ad esempio in alcune versioni dell'algoritmo JPEG. Inoltre questa codifica è detta \textit{ottimale} nel senso della Teoria dell'informazione, ovvero se ho un flusso infinito di simboli di un alfabeto sorgente e li codifico con Huffman, allora ottengo una codifica che tocca il limite ottimo dettato dall'entropia. 
+
+Uno dei limiti di questa codifica è che avrò sempre bisogno di almeno 1 bit per codificare qualsiasi carattere, quindi ad esempio se vogliamo codificare con Huffman immagini binarie non abbiamo nessun vantaggio. Spesso infatti si usa per codificare caratteri a gruppi piuttosto che singoli, per migliorarne l'efficienza. Ad esempio, se la probabilità di emissione di un carattere è di 1/3, il numero di bit ottimale per codificare quel carattere tenendo conto dell'entropia è circa 1,6 bit, e con Huffman non possiamo codificare con un numero non intero di bit. 
+
+\section{Codifica aritmetica}
+Sappiamo che la codifica di Huffman è ottimale dal punto di vista della Teoria dell'Informazione, perché se abbiamo una stringa di lunghezza infinita raggiungiamo il limite dato dall'entropia; nella pratica però le stringhe non sono infinite.
+
+Supponiamo di conoscere le probabilità di ogni simbolo emesso dalla sorgente \(S\), e siano queste probabilità \(p_1 \dots p_{|S|}\). Consideriamo la linea dei numeri reali che comprende l'intervallo \([0, 1)\) e supponiamo di volerla dividere in maniera ricorsiva in varie parti, ciascuna proporzionale alle probabilità dei vari simboli emessi dalla sorgente. Consideriamo poi il seguente esempio: supponiamo che la sorgente \(S = \{A,B,C\}\) emetta tre simboli, e che le loro probabilità di emissione siano:
+
+\[p_A = .2\]
+\[p_B = .3\]
+\[p_C = .5\]
+
+Divideremo allora la linea dei numeri reali tra 0 e 1 in tre parti. Gli intervalli saranno i seguenti:
+\begin{itemize}
+    \item A corrisponde all'intervallo \([0,.2)\)
+    \item B corrisponde all'intervallo \([.2,.5)\)
+    \item C corrisponde all'intervallo \([.5,1)\)
+\end{itemize}
+
+\begin{figure}[htbp!]
+  \centering
+  \includesvg[inkscapelatex=false, width = 200pt]{3.5}
+\end{figure}
+
+Posso poi iterare questo ragionamento: supponiamo che la mia sorgente emetta prima A. Una volta emesso, l'algoritmo andrà a restringere l'intervallo da \([0, 1)\) a  \([0,.2)\). Questo intervallo viene diviso in tre parti in base alle probabilità di emissione: avremo quindi che una seconda A corrisponde a  \([0,.04)\), B corrisponde a  \([.04,.1)\) e C corrisponde a  \([.1,.2)\). Altri esempi:
+\begin{itemize}
+    \item AC corrisponde all'intervallo \([.1,.2)\)
+    \item CA corrisponde all'intervallo \([.5,.6)\)
+    \item BC corrisponde all'intervallo \([.35,.5)\)
+    \item CAC corrisponde all'intervallo \([.55,.6)\)
+\end{itemize}
+
+\begin{figure}[htbp!]
+  \centering
+  \includesvg[inkscapelatex=false, width = 200pt]{3.6}
+\end{figure}
+
+Quindi l'idea della codifica aritmetica è restringere sempre di più l'intervallo. Quando la stringa emessa dalla sorgente sarà finita, l'intervallo finale raggiunto indicherà la codifica della stringa che è stata emessa. Man mano che il codificatore riceve caratteri e restringe l'intervallo, manda informazioni al decodificatore che man mano riesce a ricostruire l'intervallo che è stato ristretto dal codificatore.
+
+\vspace{5mm}
+
+Codificatore e decodificatore riescono a lavorare in \textit{lockstep}, per cui non c'è bisogno di assegnare un numero finito di bit ad ogni simbolo della sorgente. Visto che il codificatore invia un'informazione che rappresenta più di un simbolo, in realtà con 1 bit sarà possibile codificare più di un simbolo. La codifica aritmetica rimpiazza una stringa di simboli emessi dalla sorgente con un singolo numero in floating point. Ovviamente, più è complesso il messaggio, più avrò bisogno di numeri reali che abbiano una precisione maggiore e quindi più "grandi" da rappresentare. 
+
+L'output di un codificatore aritmetico sarà un numero reale che è strettamente minore di 1 e maggiore o uguale a 0. Questo numero potrà essere decodificato \textbf{univocamente} per costruire la sequenza di simboli da cui è stato ricavato, a patto che il decodificatore sappia la lunghezza del messaggio.
+
+\vspace{5mm}
+
+\subsection{Codifica}
+Consideriamo una sorgente che emette la stringa \texttt{BILL GATES,}, con distribuzione di probabilità:
+
+
+\begin{longtable}{>{\hspace{0pt}}m{0.388\linewidth}>{\hspace{0pt}}m{0.449\linewidth}} 
+\hline
+\textbf{Carattere} & \textbf{Probabilità}  \endfirsthead 
+\hline
+\texttt{spazio}             & 1/10                  \\
+\texttt{A}                  & 1/10                  \\
+\texttt{B}                  & 1/10                  \\
+\texttt{E}                  & 1/10                  \\
+\texttt{G}                  & 1/10                  \\
+\texttt{I}                  & 1/10                  \\
+\texttt{L}                  & 1/10                  \\
+\texttt{S}                  & 2/10                  \\
+\texttt{T}                  & 1/10                  \\
+\end{longtable}
+
+Una volta che conosciamo le probabilità sorgente, dobbiamo dividere la linea dei numeri reali in tante parti quante sono le lettere emesse dalla sorgente (quindi in 9 parti). Normalmente non importa in che ordine vado ad assegnare i simboli agli intervalli, l'importante è che siano proporzionati alla loro probabilità di emissione e che siano decodificati nello stesso ordine in cui sono stati codificati. Avremo quindi la seguente divisione:
+
+\begin{longtable}{>{\hspace{0pt}}m{0.23\linewidth}>{\hspace{0pt}}m{0.267\linewidth}>{\hspace{0pt}}m{0.395\linewidth}}
+\hline
+\textbf{Carattere} & \textbf{Probabilità} & \textbf{Range}  \endfirsthead 
+\hline
+\texttt{spazio}             & 1/10   & \(0.00 \leq r < 0.10\)               \\
+\texttt{A}                  & 1/10   & \(0.10 \leq r < 0.20\)               \\
+\texttt{B}                  & 1/10   & \(0.20 \leq r < 0.30\)               \\
+\texttt{E}                  & 1/10   & \(0.30 \leq r < 0.40\)               \\
+\texttt{G}                  & 1/10   & \(0.40 \leq r < 0.50\)               \\
+\texttt{I}                  & 1/10   & \(0.50 \leq r < 0.60\)               \\
+\texttt{L}                  & 1/10   & \(0.60 \leq r < 0.80\)               \\
+\texttt{S}                  & 2/10   & \(0.80 \leq r < 0.90\)               \\
+\texttt{T}                  & 1/10   & \(0.90 \leq r < 1.00\)               \\
+\end{longtable}
+
+La prima lettera che viene emessa dalla sorgente è la lettera \texttt{B}. Per andare a decodificarla, l'intervallo deve essere ristretto a \([0.20, 0.30)\). Quindi tutte le lettere successive saranno comprese in questo sotto-intervallo, così come il numero reale finale. Durante il resto del processo di codifica, ogni simbolo restringerà ulteriormente l'intervallo. Il prossimo carattere è la lettera \texttt{I}, il cui intervallo di riferimento è \([0.50, 0.60)\). Per cui dividerò l'intervallo \([0.20, 0.30)\) in 9 sotto-intervalli proporzionali alle probabilità dei simboli, e sceglierò quello 
+a cui fa riferimento il simbolo \texttt{I}, ovvero \([0.25, 0.26)\).
+
+\vspace{5mm}
+
+Una volta chiarita l'idea di fondo, scrivere l'algoritmo di codifica funzionante su stringhe di lunghezza arbitraria è relativamente semplice:
+
+\begin{lstlisting}[language=C]
+low = 0.0;
+high = 0.0;
+while ((c = getc(input)) != EOF){
+    range = high - low;
+    high = low + range * high_range(c);
+    low = low + range * low_range(c);
+}
+output(low);
+\end{lstlisting}
+
+La tabella finale sarà la seguente:
+
+\begin{longtable}{>{\hspace{0pt}}m{0.234\linewidth}>{\hspace{0pt}}m{0.332\linewidth}>{\hspace{0pt}}m{0.33\linewidth}} 
+\hline
+\textbf{Carattere} & \textbf{Low} & \textbf{High}  \endfirsthead 
+\hline
+                   & 0.0          & 1.0            \\
+\texttt{B}                  & 0.2          & 0.3            \\
+\texttt{I}                  & 0.25         & 0.26           \\
+\texttt{L}                  & 0.256        & 0.258          \\
+\texttt{L}                  & 0.2572       & 0.2576         \\
+\texttt{spazio}             & 0.25720      & 0.25724        \\
+\texttt{G}                  & 0.257216     & 0.257220       \\
+\texttt{A}                  & 0.2572164    & 0.2572168      \\
+\texttt{T}                  & 0.25721676   & 0.2572168      \\
+\texttt{E}                  & 0.257216772  & 0.257216776    \\
+\texttt{S}                  & 0.2572167752 & 0.2572167756  
+\end{longtable}
+
+Il codificatore quindi potrà prendere un qualsiasi numero reale compreso tra 0.2572167752 e 0.2572167756, inviarlo al decodificatore, e il decodificatore conoscendo la lunghezza del messaggio riuscirà a decodificare il messaggio. Per semplicità viene inviato il valore corrispondente all'estremo inferiore dell'intervallo. 
+
+\subsection{Decodifica}
+Il codificatore controlla all'interno di quale intervallo cade il valore ricevuto. Il valore si trova tra 0.2 e 0.3, per cui capirà che la prima lettera è \texttt{B}. A questo punto deve rimuovere il contributo di \texttt{B} dal valore da decodificare per invertire il processo. Viene quindi sottratto il valore di \texttt{B}, che sappiamo essere 0.2. Il valore ottenuto è 0.0572167752. Ora si divide questo numero per la dimensione dell'intervallo di \texttt{B}, che è 1/10. Il numero che otteniamo è 0.572167752. Continuando il processo, vediamo che questo numero cade tra 0.5 e 0.6, che è l'intervallo della lettera \texttt{I}, per cui facciamo la stessa cosa: sottraiamo 0.5, ottenendo 0.072167752, e dividiamo per la lunghezza dell'intervallo di \texttt{I} (anche stavolta 1/10), ottenendo 0.72167752. 
+
+Anche in questo caso indichiamo l'algoritmo di decodifica:
+
+\begin{lstlisting}[language=C]
+number = input_code();
+for ( ; ; ) {
+    symbol = find_symbol_straddling_this_range(number);
+    putc(symbol);
+    range = high_range(symbol) - low_range(symbol);
+    number = number - low_range(symbol);
+    number = number / range;
+}
+\end{lstlisting}
+
+Si può notare come nell'algoritmo di decodifica il ciclo \texttt{for} non ha una condizione. Per indicare la fine di un messaggio allora si può utilizzare un separatore, come nel nostro caso la virgola. Per completezza mostriamo anche la tabella per la decodifica:
+
+\begin{longtable}{>{\hspace{0pt}}m{0.365\linewidth}>{\hspace{0pt}}m{0.161\linewidth}>{\hspace{0pt}}m{0.106\linewidth}>{\hspace{0pt}}m{0.115\linewidth}>{\hspace{0pt}}m{0.152\linewidth}} 
+\hline
+\textbf{Valore codificato} & \textbf{Output} & \textbf{Low} & \textbf{High} & \textbf{Range}  \endfirsthead 
+\hline
+0.2572167752               & \texttt{B}               & 0.2          & 0.3           & 0.1             \\
+0.572167752                & \texttt{I}               & 0.5          & 0.6           & 0.1             \\
+0.72167752                 & \texttt{L}               & 0.6          & 0.8           & 0.2             \\
+0.6083876                  & \texttt{L}               & 0.6          & 0.8           & 0.2             \\
+0.041938                   & \texttt{spazio}          & 0.0          & 0.1           & 0.1             \\
+0.41938                    & \texttt{G}               & 0.4          & 0.5           & 0.1             \\
+0.1938                     & \texttt{A}               & 0.2          & 0.3           & 0.1             \\
+0.938                      & \texttt{T}               & 0.9          & 1.0           & 0.1             \\
+0.38                       & \texttt{E}               & 0.3          & 0.4           & 0.1             \\
+0.8                        & \texttt{S}               & 0.8          & 0.9           & 0.1             \\
+0.0                        &                 &              &               &                
+\end{longtable}
+
+\subsection{Problemi pratici}
+Codificare e decodificare stringhe utilizzando la codifica aritmetica non è complicato ma risulta poco pratico: le macchine hanno una precisione finita, tipicamente riescono a rappresentare circa 80 bit in virgola mobile prima di andare in overflow. Questo problema implica resettare gli intervalli ogni 10-15 simboli, il che non è accettabile. Inoltre c'è da considerare anche il fatto che processori che gestiscono i numeri a virgola mobile in modo diverso potrebbero avere problemi nella comunicazione e nella rappresentazione di questi numeri. 
+
+Un'altra problematica è data dal fatto che il decodificatore deve aspettare il numero finale ottenuto dal codificatore, quindi deve aspettare che la codifica finisca, quando sarebbe comodo che lavorasse in modo concorrente con il codificatore. Questo diventa possibile solo utilizzando uno schema di codifica incrementale, ovvero uno schema in cui il codificatore man mano che codifica invia delle informazioni al decodificatore che intanto può iniziare il suo processo di decodifica.
+
+\vspace{5mm}
+
+Per semplificare il processo di codifica e decodifica, si passa da valori in virgola mobile a valori interi, facendo in modo che da operazioni costose (moltiplicazioni e divisioni) su decimali si passi ad addizioni, sottrazioni e shift su interi. Questo tipo di cambiamento permette anche di effettuare una codifica incrementale. Abbiamo visto che l'algoritmo funziona tenendo traccia di un estremo superiore e inferiore, che vengono fissati rispettivamente a 1 e 0. La prima semplificazione che facciamo è quella di scambiare 1 con 0.999... e 0 con 0.000..., rappresentando poi solo le cifre decimali, quindi tralasciando lo zero iniziale. Se lavoriamo ad esempio con variabili intere a 16 bit, vuol dire che possiamo tenere traccia solo delle prime cifre significative del valore perché in teoria sappiamo che continuano all'infinito. 
+
+Consideriamo allora la frase \texttt{BILL GATES} da codificare, utilizzando dei registri a 5 cifre decimali (useremo i decimali piuttosto che i binari per semplicità, ma il concetto è lo stesso). Avremo la seguente situazione:
+
+\begin{lstlisting}
+HIGH: 99999 (e a seguire tanti 999999...)
+LOW:  00000 (e a seguire tanti 000000...)
+\end{lstlisting}
+
+Per come abbiamo definito la nostra rappresentazione, sappiamo che il valore \texttt{HIGH} contiene in realtà 0.999... e il valore \texttt{LOW} contiene 0.000... Continuiamo allora ad applicare l'algoritmo, e quindi facendo la differenza tra questi due valori per ottenere l'intervallo. Intuitivamente sappiamo che la differenza è 100000, non 99999, perché assumiamo che la variabile \texttt{HIGH} abbia un numero infinito di 9, e quindi vale praticamente 1. Calcoliamo allora il nuovo valore usando l'istruzione corrispondente nell'algoritmo:
+
+\begin{lstlisting}
+high = low + high_range(symbol)
+\end{lstlisting}
+
+In questo caso \texttt{high\_range} valeva .30, per cui il nuovo valore di \texttt{HIGH} è 30000. Prima di salvare il dato dobbiamo decrementarlo per come abbiamo definito la nostra rappresentazione, per cui sarà 29999. Anche per \texttt{LOW} vale la stessa cosa, e infatti varrà 20000. 
+
+\begin{lstlisting}
+high: 29999 (999...)
+low:  20000 (000...)
+\end{lstlisting}
+
+A questo punto, la cifra più significativa delle due variabili è la stessa, ed è 2. Per cui qualsiasi numero vado a inviare al decompressore so che inizierà con 2 (0.2 in realtà). Dal punto di vista pratico si invia 2 al decompressore come output cumulativo e si fa uno shift a sinistra di 1 cifra di entrambe le variabili \texttt{HIGH} e \texttt{LOW}, per cui le nuove cifre più significative saranno rispettivamente 9 e 0. Continuando a seguire questo metodo per tutta la frase si ottiene il risultato mostrato nella tabella seguente.
+
+\begin{longtable}{>{\hspace{0pt}}m{0.305\linewidth}>{\hspace{0pt}}m{0.096\linewidth}>{\hspace{0pt}}m{0.094\linewidth}>{\hspace{0pt}}m{0.111\linewidth}>{\hspace{0pt}}m{0.273\linewidth}} 
+\hline
+                         & \textbf{High} & \textbf{Low} & \textbf{Range} & \textbf{Output cumulativo}  \endfirsthead 
+\hline
+Initial state            & 99999         & 00000        & 100000         &                             \\
+Encode B (0.2 - 0.3      & 29999         & 20000        &                &                             \\
+Shift out 2              & 99999         & 00000        & 10000          & .2                          \\
+Encode I (0.5 - 0.6)     & 59999         & 50000        &                & .2                          \\
+Shift out 5              & 99999         & 00000        & 100000         & .25                         \\
+Encode L (0.6 - 0.8)     & 79999         & 60000        & 20000          & .25                         \\
+Encode L (0.6 - 0.8)     & 75999         & 72000        &                & .25                         \\
+Shift out 7              & 59999         & 20000        & 40000          & .257                        \\
+Encode SPACE (0.0 - 0.1) & 23999         & 20000        &                & .257                        \\
+Shift out 2              & 39999         & 00000        & 40000          & .2572                       \\
+Encode G (0.4 - 0.5)     & 19999         & 16000        &                & .2572                       \\
+Shift out 1              & 99999         & 60000        & 40000          & .25721                      \\
+Encode A (0.1 - 0.2)     & 67999         & 64000        &                & .25721                      \\
+Shift out 6              & 79999         & 40000        & 40000          & .257216                     \\
+Encode T (0.9 - 1.0)     & 79999         & 76000        &                & .257216                     \\
+Shift out 7              & 99999         & 60000        & 40000          & .2572167                    \\
+Encode E (0.3 - 0.4)     & 75999         & 72000        &                & .2572167                    \\
+Shift out 7              & 59999         & 20000        & 40000          & .25721677                   \\
+Encode S (0.8 - 0.9)     & 55999         & 52000        &                & .25721677                   \\
+Shift out 5              & 59999         & 20000        &                & .257216775                  \\
+Shift out 2              &               &              &                & .2572167752                 \\
+Shift out 0              &               &              &                & .25721677520               
+\end{longtable}
+
+Questo schema funziona molto bene per codificare incrementalmente un messaggio, ma c'è un problema quando le cifre più significative di \texttt{HIGH} e \texttt{LOW} non corrispondono. Infatti se per un certo numero di volte non corrispondono, non riesco a completare la codifica perché non ho abbastanza precisione.
+
+Se la parola codificata ha una stringa di 0 o 9, i valori \texttt{HIGH} e \texttt{LOW} convergono lentamente allo stesso valore e andremo quindi a ridurre sempre di più l'intervallo. Se arrivo a un punto in cui \texttt{HIGH} vale 700004 e \texttt{LOW} vale 699995, l'intervallo calcolato sarà lungo solo una cifra, il che significa che la parola in output non avrà abbastanza precisione per essere codificata correttamente. Peggio ancora se arrivo in un punto in cui \texttt{HIGH} è 70000 e \texttt{LOW} è 69999, sono sicuro che nei prossimi passaggi non riuscirò a rappresentare questi valori con 5 cifre perché l'intervallo è diventato troppo piccolo.
+
+\vspace{5mm}
+
+È possibile risolvere questo problema di underflow facendo un altro controllo sulle cifre che non corrispondono. In particolare se le cifre più significative di \texttt{HIGH} e \texttt{LOW} sono adiacenti (ovvero differiscono per 1) allora andiamo a vedere la seconda cifra: se sono 0 e 9 allora sappiamo che si verificherà un underflow.
+Cancelliamo quindi la seconda cifra sia da \texttt{HIGH} che da \texttt{LOW} e facciamo lo shift a sinistra del resto delle cifre. Quindi cancello 0 e 9 e faccio uno shift a sinistra per far si che \texttt{HIGH} e \texttt{LOW} ricevono un 9 e uno 0. La cifra più significativa rimane al suo posto. Usiamo una variabile chiamata \textit{underflow counter} che ci ricorda che abbiamo “buttato via” uno 0 o un 9, cosi quando andremo a inviare al decompressore il numero, dovremo ricordarci di mettere in quella posizione uno 0 o un 9. In tabella è mostrato questo processo:
+
+\begin{longtable}{>{\hspace{0pt}}m{0.263\linewidth}>{\hspace{0pt}}m{0.161\linewidth}>{\hspace{0pt}}m{0.161\linewidth}>{\hspace{0pt}}m{0.05\linewidth}>{\hspace{0pt}}m{0.05\linewidth}>{\hspace{0pt}}m{0.05\linewidth}>{\hspace{0pt}}m{0.05\linewidth}>{\hspace{0pt}}m{0.05\linewidth}>{\hspace{0pt}}m{0.05\linewidth}} 
+\cline{1-3}
+           & \textbf{Prima} & \textbf{Dopo} &  &  &  &  &  &   \endfirsthead 
+\cline{1-3}
+High:      & 40344          & 43449         &  &  &  &  &  &   \\
+Low:       & 39810          & 38100         &  &  &  &  &  &   \\
+Underflow: & 0              & 1             &  &  &  &  &  &  
+\end{longtable}
+
+
+Dopo ogni ricalcolo si controlla se le cifre più significative non combaciano per verificare se c'è stato un altro underflow. Visto che qui le cifre più significative non coincidono e quelle immediatamente successive sono 0 per \texttt{HIGH} e 9 per \texttt{LOW}, cancelliamo 0 e 9, incrementiamo l'underflow counter e facciamo shift a sinistra. È possibile provare che questa soluzione risolve il problema.
+
+\vspace{5mm}
+
+Così non è molto chiaro il motivo per cui questa codifica sia migliore rispetto a Huffman. Consideriamo allora questo esempio. Se dobbiamo
+codificare il flusso \texttt{AAAAAAA,} e la probabilità di \texttt{A} è 9/10, c'è un 90\% di probabilità che il prossimo carattere emesso dalla sorgente sia la \texttt{A}. Impostiamo la nostra tabella di probabilità in modo che \texttt{A} occupi l'intervallo da .0 a . 9, e il simbolo di fine messaggio occupi l'intervallo da .9 a 1. Il processo di codifica è mostrato di seguito: 
+
+\begin{table}[bhtp!]
+\begin{tabular}{llllll} 
+\hline
+\textbf{Nuovo carattere} & \textbf{Low} & \textbf{High} &  &  &   \\ 
+\hline
+                         & 0.0          & 1.0           &  &  &   \\
+\texttt{A}                        & 0.0          & 0.9           &  &  &   \\
+\texttt{A}                        & 0.0          & 0.81          &  &  &   \\
+\texttt{A}                        & 0.0          & 0.729         &  &  &   \\
+\texttt{A}                        & 0.0          & 0.6561        &  &  &   \\
+\texttt{A}                        & 0.0          & 0.59049       &  &  &   \\
+\texttt{A}                        & 0.0          & 0.531441      &  &  &   \\
+\texttt{A}                        & 0.0          & 0.4782969     &  &  &   \\
+\texttt{END}                      & 0.43046721   & 0.4782969     &  &  &  
+\end{tabular}
+\end{table}
+
+\FloatBarrier
+
+Ora dobbiamo scegliere un numero per codificare il messaggio. Il numero .45 farà decodificare questo messaggio in modo univoco in "AAAAAAA". Queste due cifre decimali richiedono poco meno di 7 bit per la codifica, il che significa che abbiamo codificato 8 simboli in meno di 8 bit, mentre un messaggio con Huffman ottimale avrebbe richiesto un minimo di 9 bit.
+
+\vspace{5mm}
+
+Abbiamo visto queste due codifiche perché quando vedremo algoritmi di compressione per esempio JPEG o MPEG, scopriremo che anche se sono lossy hanno alla fine della loro compressione un passo che è relativo a una compressione ulteriore andando a comprimere in maniera lossless certe cose, usando Huffman o codifica aritmetica. In particolare JPEG fu introdotto come algoritmo che serviva per comprimere le foto digitali. Si decise che alla fine di JPEG ci voleva anche una fase entropica e si indicò nello standard due algoritmi possibili da usare nei compressori JPEG per la codifica entropica: Huffman o codifica aritmetica. A seconda dell'algoritmo utilizzato si parlava di compressione e decompressione JPEG Huffman/arithmetic coding. Arithmetic coding portava a una compressione maggiore ma non fu molto utilizzato per un problema di proprietà intellettuale, perché fu brevettata da dipendenti di IBM, la quale chiese una loyalty per permettere l'utilizzo di arithmetic coding, quindi tutti usavano Huffman. Quando IBM smise di chiedere le loyalty sull'utilizzo tutti passarono a arithmetic coding perché è più efficiente per la codifica entropica.
+
+\let\cleardoublepage\clearpage
