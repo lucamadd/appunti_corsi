@@ -1,0 +1,117 @@
+\chapter{Introduzione}
+Il corso introduce i concetti fondamentali della
+Programmazione Sicura
+ed approfondisce le metodologie e
+le tecniche necessarie per la
+valutazione della sicurezza di un programma.
+
+Essendo i programmi residenti su computer connessi
+in rete, essi sono oggetto di continui attacchi. È importante saper valutare le debolezze e le
+potenziali vulnerabilità di un programma. Si vuole evitare che esse vengano sfruttate per la
+realizzazione di un exploit da parte di un attaccante. È importante saper fornire mitigazioni per le
+debolezze individuate
+
+\section{Cenni storici}
+Gli sviluppatori scrivono programmi insicuri in quanto quasi sempre mancano le informazioni necessarie, oppure perché non pensano che i loro programmi potrebbero essere oggetto di attacco, o ancora perché non si tende ad imparare dagli errori: infatti molte vulnerabilità sono state causate dagli stessi errori ripetuti negli ultimi quaranta anni.
+
+\vspace{4mm}
+
+Nel 1945 al MIT viene fondato il circolo di modellismo ferroviario a cui partecipavano studenti e professori, la cui passione era capire a fondo la natura delle cose e come controllarla in modo creativo. Col passare del tempo la passione di queste persone si spostò dal modellismo ai computer e molti dei membri del club diventarono pezzi importanti per l'informatica grazie alle loro invenzioni. L'attività dei membri del club veniva indicata con il termine \textit{hacking}, che in un dizionario dell'epoca veniva indicata come \textit{"esplorare i dettagli nei sistemi informatici con cui estendere le proprie capacità, a differenza degli utenti che imparano solo lo stretto necessario all'utilizzo della risorsa"}.  Più recentemente però questo termine viene usato con accezione negativa per indicare persone che vogliono infrangere sistemi informatici o rendere inutilizzabili risorse, o divulgare dati sensibili. Infatti negli anni si sono sviluppate le nozioni di:
+\begin{itemize}
+    \item cracker: programmatori specializzati nell'infrangere sistemi di sicurezza per sottrarre o distruggere dati;
+    \item script kiddie: cracker che adoperano script scritti da altri, non essendo in grado di produrli da sé;
+    \item phracher: che rubano programmi per utilizzare servizi telefonici gratuiti;
+    \item phreaker: che usano le informazioni telefoniche per compiere gli attacchi.
+\end{itemize}
+Un esempio di phone phreaking avvenne nel 1956 quando un bambino non vedente ma che possedeva un orecchio assoluto scoprì come attivare gli switch della Bell Telephone (oggi AT \& T) riproducendo un suono con la frequenza di 2600 Hz. Col crescere degli anni fu soprannominato \textit{whistler} e iniziò a fare profitti grazie alla vendita di chiamate a 1 dollaro. Fu però arrestato per frode.
+
+Nel 1963 venne descritto nel giornale degli studenti di Harward un utilizzo illecito del sistema PDP-1, che veniva usato per effettuare telefonate gratuite e che fu scoperto grazie alla bolletta salata della corrente. Due anni dopo nel 1965 fu divulgata la prima vulnerabilità dal MIT, che scoprì un difetto nel sistema operativo CTSS su un IBM 7094: quando due utenti editavano file nella stessa cartella, il messaggio di benvenuto del sistema veniva scambiato con il file delle password a ogni login. Nel 1971 poi si scoprì come un fischietto giocattolo era capace di produrre un suono che permetteva di effettuare telefonate gratuitamente.
+
+\vspace{4mm}
+
+Nel 1981 fu creato il primo virus a larga diffusione: Elk Cloner, che si diffondeva tramite floppy disk e infettava il sistema operativo dell'Apple II. Il virus era attaccato ad un gioco e si attivava alla cinquantesima esecuzione e mostrava solo un messaggio a video. Nel 1987 uno studente scrisse Christmas Tree EXEC, un virus che mostrava a video un albero di Natale e lo inviava a tutti i contatti di posta elettronica. Il vero anno funesto per la sicurezza fu il 1988, quando ci fu la diffusione del primo worm, di Morris, che sfruttava dei bug di UNIX per penetrare gli host attraverso la rete. Per colpa del worm la maggior parte dei computer di alcuni centri di ricerca diventarono inutilizzabili perché venivano sovraccaricati di copie del worm. Per bloccare il worm fu creato un team di esperti che esiste ancora e va sotto il noedi CERT (Computer Emergency Response Team), creato dal DARPA, che oggi si occupa di verificare i tipi di incidenti, quantificare le perdite economiche e analizzare le vulnerabilità dei prodotti.
+
+\vspace{4mm}
+
+Nel 1989 comparve il primo ransomware, che si chiamava AIDS e richiedeva un riscatto per il ripristino del PC infetto. Nel 1993 venne rilasciato il primo virus polimorfico, infatti cifrava il suo codice con una chiave diversa ogni volta che si diffondeva. La chiave era conservata nel virus e serviva per decifrare il codice. In tal modo la ricerca delle firme degli antivirus era inutile. Nel 1999 viene rilasciato MELISSA, il primo macrovirus sviluppato come macro di applicazioni utente ed attaccava i programmi del pacchetto Office. L'autore venne condannato a 10 anni di carcere e ad una multa di 5000 dollari. Nel 2004 viene costruita la prima botnet, mentre nel 2007 l'Estonia subisce una serie di attacchi DoS ad opera di parti distribuite che concorrevano tra di loro che misero KO banche, tv e giornali. Nel 2007 si diffonde anche il phishing, quando viene violato un sito interno al pentagono. La tecnica utilizzata induceva le vittime a rivelare dati confidenziali o installare software malizioso. Nel 2012 la rete sociale LinkedIn viene violata da un gruppo di hacker russi e vengono trafugati 2 milioni e mezzo di password degli utenti, i quali lanciarono una class action e riuscirono ad ottenere un risarcimento di 1,35 milioni di dollari. Nel 2013 fece discutere il caso Snowden, che lavorava per la NSA e trafugò e rese pubbliche migliaia di informazioni confidenziali della NSA: in particolare furono rilasciati dettagli su alcuni programmi di sorveglianza di massa da parte del governo USA e UK. Snowden fu accusato di spionaggio e fuggì in Russia, dove vive ancora oggi. Il controllo degli accessi a dati confidenziali nella NSA era implementato male perché aveva consentito ad un semplice amministratore di rete l'accesso a quei dati.
+
+Nel 2015 il sito di incontri Ashley Madison, utilizzato da utenti sposati che cercavano un'avventura, venne violato e gli attaccanti rivelarono 2,5 GB di dati comprese le credenziali degli utenti, molti dei quali si suicidarono. Nel 2016 Wikileaks pubblica quasi 20 mila email affiliate al partito democratico USA, con contenuti sensibili quali info su campagne dei presidenti e finanziamenti. Quattro dirigenti del partito sono costretti a dimettersi.
+
+\vspace{4mm}
+
+Il 2021 a causa della pandemia è stato un anno funesto per la sicurezza informatica, costringendo la maggioranza dei lavoratori a lavorare da casa. A maggio 2021 c'è stata una delle più grandi interruzioni di infrastrutture nella storia degli USA: viene attaccata la rete della Colonial Pipeline, azienda che gestiva un oleodotto per trasportare il carburante nella costa orientale degli USA. Ci fu uno shortage di carburante e le persone si precipitavano ai distributori per fare il pieno alle auto. L'attacco è stato rivendicato da un gruppo di hacker russi che hanno chiesto e ottenuto un riscatto di 4 milioni di dollari in bitcoin. È stata poi annunciata una taglia di 10 milioni di dollari sul gruppo di hacker russi.
+
+A luglio del 2021 viene compromessa l'azienda produttrice di software Kaseya, sfruttando una falla in uno dei loro sistemi: vengono infettati 1500 enti in tutto il mondo con un ransomware. L'attacco viene rivendicato dal gruppo di hacker russi REvil, che chiedono riscatti da 45000 a 5 milioni di dollari. A luglio Kaseya distribuisce uno strumento per decifrare i dati cifrati dal ransomware. Ad ottobre uno dei presunti autori dell'attacco è stato arrestato.
+
+Sempre ad ottobre 2021 si verifica un data leakage nel servizio di streaming Twitch. Vengono rubati 128 GB di dati, tra cui il codice sorgente del servizio. I responsabili della società affermarono che l'incidente era stato causato da un cambiamento di configurazione del server che ha consentito un accesso non autorizzato.
+
+A novembre del 2021 Apple fa causa all'azienda israeliana NSO, produttrice di spyware, e accusa di aver installato lo spyware Pegasus su milioni di dispositivi iOS e Android. Pegasus oltre a leggere messaggi e a visualizzare immagini poteva attivare automaticamente la fotocamera e il microfono del dispositivo senza che l'utente se ne accorgesse.
+
+A dicembre 2021 viene scoperta una vulnerabilità nel servizio di logging Apache Log4J, che permetteva di infettare un server semplicemente modificando la stringa user-agent del browser, e quindi l'esecuzione di codice arbitrario.
+
+\subsubsection{E in Italia?}
+A febbraio 2021 viene trovata una falla nei sistemi di prenotazione dei vaccini in Campania, che ha esposto i dati dei vaccinati, inclusi i numeri di telefono registrati. Ad aprile 2021 viene effettuato un attacco ransomware alla società Axios, che gestisce i registri elettronici del 40\% delle scuole italiane. Ad agosto viene attaccata la regione Lazio e vengono bloccati tutti i servizi sanitari e amministrativi. A novembre viene scoperto un archivio contenente centinaia di green pass falsi ma validi. All'interno di un forum venivano venduti green pass con nomi inventati al prezzo di 120 euro. Nel dicembre 2021 c'è stato un furto di dati all'azienda SOGIN che gestisce i rifiuti radioattivi delle ex centrali nucleari. Sono stati rubati dati degli appalti, password e foto, ed è stato richiesto un riscatto di 25 mila dollari nella cryptovaluta Monero.
+
+\subsubsection{Cosa abbiamo imparato?}
+Il termine \textit{hacking} ha cambiato radicalmente il proprio significato nel tempo, da desiderio di manifestare la propria superiorità a complesso insieme di attività per ottenere un vantaggio politico o economico. L'hacking "cattivo" finisce sempre allo stesso modo: denuncia, processo o condanna penale- Bisogna quindi imparare a difendersi ragionando nello stesso modo dei cattivi, capendo dunque come avvengono gli attacchi. Difendersi però è più complesso di attaccare, perché all'attaccante basta una singola falla per entrare nel sistema, mentre il difensore deve correggere tutte le falle per impedire all'attaccante di entrare. L'attaccante spesso viene visto come un eroe se ha successo, mentre il difensore è visto come un perdente se fallisce. L'attaccante conosce bene gli strumenti che usa, mentre il difensore può scontrarsi con tecniche che non ha mai visto prima. 
+
+\section{Terminologia}
+Introduciamo ora una serie di termini che saranno usati durante il corso.
+
+\subsubsection{Asset}
+Un asset è un'entità generica che interagisce con il mondo circostante, quindi può essere un edificio, un dispositivo hardware, un software, un dato, un algoritmo o una persona. In questo corso con asset si indicherà prevalentemente un software. Un utente può interagire con un asset in tre modi: correttamente, non correttamente in modo involontario, non correttamente in modo malizioso. L'attaccante ovviamente agisce nella terza modalità. Un uso non corretto di un asset può portare a gravi rischi, tra cui furto di dati sensibili, perdita di dati importanti, o compromissione di servizi.
+
+\subsubsection{Minaccia}
+Una minaccia o threat è una potenziale causa di incidente che risulta in un danno all'asset. Le minacce possono essere accidentali o dolose. Microsoft ha introdotto una classificazione delle minacce che va sotto il nome di STRIDE:
+\begin{itemize}
+    \item \textbf{S} - Spoofing
+    \item \textbf{T} - Tampering
+    \item \textbf{R} - Repudiation
+    \item \textbf{I} - Information disclosure
+    \item \textbf{D} - Denial of service
+    \item \textbf{E} - Elevation of privilege
+\end{itemize}
+Noi vedremo principalmente Information Disclosure e Elevation of Privilege.
+
+\subsubsection{Attaccante}
+Un attaccante interagisce con l'asset e può essere di vari tipi: spia industriale, insider, criminale, governo straniero, script kiddie, ecc. Il modo in cui agiscono gli attaccanti è in modo volontario e malizioso perché il loro fine è quasi sempre economico. Sono alla ricerca di un malfunzionamento sfruttabile, che si pssa tramutare in un exploit, quindi in una scrittura di una procedura che consente di ottenere un payload. Il suo scopo è quello di tramutare una minaccia in realtà. Un attaccante può essere:
+\begin{itemize}
+    \item \textbf{White hat}: ethical hacker che viola asset per fini non maliziosi ma per stimare il livello di sicurezza.
+    \item \textbf{Black hat}: viola asset per tornaconto personale.
+    \item \textbf{Grey hat}: viola asset e in cambio di denaro offre di irrobustirli.
+    \item \textbf{Hacktivist}: viola asset per fini ideologici, politici o religiosi. Svolge anche attività di cyberterrorismo e rende disponibili al pubblico documenti confidenziali.
+    \item \textbf{Nation state}: team di attaccanti sponsorizzati da una nazione.
+    \item \textbf{Organized criminal gang}: team di attaccanti che viola gli asset per fini illegali.
+\end{itemize}
+
+\subsubsection{Bug, difetti, debolezze}
+Un bug è un errore di implementazione dell'asset, mentre un difetto è una deviazione dell'asset dai requisiti e dalle specifiche di progetto. Una debolezza è un difetto che potrebbe rendere reale una minaccia. La presenza di una debolezza non indica necessariamente che il software potrebbe essere compromesso.
+
+\subsubsection{Vulnerabilità}
+Una vulnerabilità\footnote{Piattaforme nuove per CTF rispetto a PROTOSTAR sono PHOENIX e FUSION.} è una debolezza che un attaccante può usare per tramutare la minaccia in realtà. È la somma di tre fattori: debolezza esistente, accesso dell'attaccante alla debolezza, capacità dell'attaccante di sfruttare la debolezza.
+
+\subsubsection{Exploit}
+Un exploit è una procedura scritta dall'attaccante che sfrutta la vulnerabilità trovata, causa un comportamento inatteso dell'asset e trasforma una minaccia in realtà, consentendo all'attaccante di ottenere un vantaggio.
+
+\subsubsection{Sicurezza di un asset}
+Dipende da che tipo di funzionalità offre l'asset: un asset non esposto al pubblico non offre funzionalità e quindi è sicuro, tuttavia non serve a niente. Vogliamo invece un software che interagisce con l'esterno ma facendo in modo che non ci siano debolezze. C'è sempre infatti un rischio di abuso quando ci si espone al pubblico. L'abuso può essere la violazione di una delle componenti della triade CIA (Confidentiality, Integrity, Availability): violazione della confidenzialità indica che è stato causato un accesso in lettura non autorizzato, quindi l'utente accede a dati sensibili. Una violazione dell'integrità impedisce l'interazione in scrittura tra un asset e un utente autorizzato. Availability indica la disponibilità delle funzioni. Nella triade CIA solitamente la proprietà più importante è la Integrity, in quanto è sempre meglio che l'attaccante legga i dati piuttosto che sfruttarli per fini illegali. L'Availability in alcuni scenari può essere addirittura d'intralcio, ad esempio quando la privacy di un utente può implicare la mancata disponibilità dei dati a terzi.
+
+\subsubsection{Vettore di attacco}
+Un vettore di attacco indica la modalità con cui avviene l'attacco e attraverso il quale si veicola una vulnerabilità, e può essere locale (shell locale) o remoto (connessione TCP verso un server). La superficie di attacco di un asset è l'insieme di tutti i suoi vettori di attacco, e misura l'esposizione dell'asset agli attacchi. Va considerata quando si valuta la sicurezza di un programma.
+
+\subsubsection{Politica di sicurezza}
+Una security policy risponde alle domande "Che significa che l'asset e sicuro? Da quale interazione ci si vuole difendere? Da quali utenti ci si vuole difendere?". La politica di sicurezza nasce spesso da un'analisi dei rischi che cerca di identificare.
+
+\subsubsection{Meccanismi di sicurezza}
+Si intende qualsiasi strumento che ci consente di applicare una politica di sicurezza. Uno dei meccanismi di sicurezza è quello ad esempio di spegnere il bit \texttt{setUID} che consente di eseguire un processo con privilegi elevati.
+Si dividono in tre categorie:
+\begin{itemize}
+    \item \textbf{Prevenzione} - un asset soggetto a prevenzione non è in grado di interagire con nessuno: l'aspetto positivo è che non è attaccabile dai malintenzionati, mentre l'aspetto negativo è che non può essere usato neanche dagli utenti stessi. Un software completamente disconnesso dalla rete non può essere attaccato da remoto, ma un aumento della sua esposizione potrebbe essere l'apertura delle porte TCP. Invece per un applicazione locale il problema potrebbe essere la non validazione degli input.
+    \item \textbf{Rilevazione} - un metodo di rilevazione può essere il controllo del traffico sulle porte TCP aperte o il controllo degli input passati a una funzione.
+    \item \textbf{Reazione} - consiste nel mitigare un attacco e ripristinare il sistema dopo che questo è stato attaccato.
+\end{itemize}
+\subsubsection{Meccanismi di sicurezza}
+Operazioni tipiche dei meccanismi di sicurezza sono controllo degli accessi, auditing, e azioni compiute dall'utente.
+
+
+\let\cleardoublepage\clearpage

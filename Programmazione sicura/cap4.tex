@@ -1,0 +1,930 @@
+\chapter{Esecuzione con privilegi elevati}
+Nei sistemi UNIX può capitare che un processo necessiti di privilegi elevati (tipicamente privilegi di root). Ad esempio:
+\begin{itemize}
+    \item il comando \texttt{passwd} necessita dei permessi di root per modificare il file \texttt{/etc/passwd}
+    \item il comanando \texttt{ping} necessita dei permessi di root per aprire socket e porte 
+    \item il comando \texttt{mount} necessita dei permessi di root per montare file system residenti su memorie di massa removibili
+\end{itemize}
+L'elevazione dei privilegi può essere effettuata in due modi:
+\begin{itemize}
+    \item manuale: l'utente digita i comandi opportuni per diventare amministratore ed esegue il comando che gli interessa;
+    \item automatica (tipicamente usata in UNIX): l'utente esegue il comando che gli interessa e il SO esegue l'elevazione dei privilegi.
+\end{itemize}
+Esempio di elevazione manuale:
+\begin{mdframed}[backgroundcolor=white!20,shadow=false]
+\begin{lstlisting}
+$ su -
+Password:
+$ passwd masucci
+Changing password for user masucci.
+New password:
+Retype new password:
+passwd: all authentication tokens updated successfully
+\end{lstlisting}
+
+\end{mdframed}
+
+Il comando \texttt{su} consente a un utente di eseguire comandi con i privilegi di un altro utente, in questo caso l'utente root. La procedura richiede la conoscenza della password di root. Una volta acquisiti i privilegi di root, l'utente può modificare la sua password (che sarà scritta nel file \texttt{/etc/passwd}). Con l'elevazione manuale è necessario conoscere la password di root: di conseguenza l'utente può ispezionare il sistema, modificare file e compromettere servizi. Inoltre è necessario immettere la password di root ogni volta che serve acquisire privilegi elevati. C'è anche il rischio che per agevolare l'operazione si decida di non importare alcuna password di root. Vediamo un esempio di elevazione automatica:
+
+\begin{mdframed}[backgroundcolor=white!20,shadow=false]
+
+\begin{lstlisting}
+$ passwd masucci
+Changing password for user masucci.
+Current password:
+New password:
+Retype new password:
+passwd: all authentication tokens updated successfully
+\end{lstlisting}
+
+\end{mdframed}
+
+In questo caso l'utente richiede di modificare la password mediante il comando \texttt{passwd}, e il SO esegue l'elevazione automatica ai privilegi di root, consentendo all'utente di modificare la password. Ma com'è possibile che l'utente abbia ottenuto i privilegi di root per l'esecuzione di questo comando? Per comprenderlo, rivediamo brevemente l'organizzazione del file system nei sistemi UNIX. 
+
+In UNIX un utente è caratterizzato da:
+\begin{itemize}
+    \item Username (stringa)
+    \item UID (User IDentification number (intero)
+    \item La root è l'utente con UID = 0
+\end{itemize}
+Un gruppo è caratterizzato invece da:
+\begin{itemize}
+    \item Groupname (stringa)
+    \item GID (Group IDentification number (intero)
+\end{itemize}
+Queste informazioni possono essere visualizzate con il comando \texttt{id}.
+
+L'accesso ai file è regolato da permessi, definiti come tre terne di azioni (una terna per ciascuna tipologia di utenti). Le azioni sono Read, Write, eXecute. Le tipologie di utenti sono proprietario, gruppo di lavoro, altri utenti. Il permesso eXecute su un file indica che il file può essere eseguito, mentre su una directory indica che si può entrare in essa.
+
+\section{Permessi}
+I permessi sono indicati in rappresentazione ottale:
+\begin{itemize}
+    \item read = 4
+    \item write = 2
+    \item execute = 1
+\end{itemize}
+Una terna di azioni è una somma di permessi, ad esempio:
+\begin{center}
+    \texttt{rwxrwxr-x} = \(4+2+1\) \(4+2+1\) \(4+1\) \(= 775\)
+\end{center}
+Abbiamo poi la rappresentazione simbolica:
+\begin{itemize}
+    \item read = \texttt{r}, write = \texttt{w}, execute = \texttt{x}
+    \item creatore = \texttt{u}, gruppo = \texttt{g}, altri = \texttt{o}
+\end{itemize}
+Una modifica è composta da utenti e azioni, ad esempio \texttt{u+rw}, mentre il permesso finale è rappresentato da modifiche separate da virgola, ad esempio: \texttt{rwxrwxr-x} diventa \texttt{ug+rwx}, \texttt{o+rx}.
+
+I permessi possono essere impostati con il comando:
+\begin{center}
+    \texttt{chmod nuovi-permessi nome-file}
+\end{center}
+
+\begin{table}[hbtp!]
+\centering
+\begin{tabular}{lll} 
+\hline
+\multicolumn{1}{c}{\textbf{\#}} & \multicolumn{1}{c}{\textbf{Permission}} & \multicolumn{1}{c}{\textbf{rwx}}  \\ 
+\hline
+7                               & read, write and execute                 & \texttt{rwx}                             \\
+6                               & read and write                          & \texttt{rw-}                               \\
+5                               & read and execute                        & \texttt{r-x}                               \\
+4                               & read only                               & \texttt{r--}                               \\
+3                               & write and execute                       & \texttt{-wx}                               \\
+2                               & write only                              & \texttt{-w-}                               \\
+1                               & execute only                            & \texttt{--x}                               \\
+0                               & none                                    & \texttt{---}                              
+\end{tabular}
+\end{table}
+\FloatBarrier
+
+Quindi a ciascun file è associata una stringa di permessi di 9 bi. In realtà ci sono tre bit aggiuntivi associati ai permessi: SETUID, SETGID, STICKY. I bit aggiuntivi SETUID e SETGID sono rilevanti per la nostra discussione: quando sono posti uguali a 1, consentono un'elevazione dei privilegi. La rappresentazione ottale/simbolica per SETUID è 4/s, per SETGID è 2/s. Per impostare a 1 il bit SETUID di un file si utilizza il comando:
+
+\begin{center}
+    \texttt{chmod u+s file}
+\end{center}
+
+Per stabilire se il bit SETUID è posto a 1 per un determinato file invochiamo \texttt{ls -l nomefile} e vediamo se è presente il permesso \texttt{s} e se il file è evidenziato in rosso. Per individuare tutti i file con il bit SETUID acceso possiamo utilizzare il comando \texttt{find} con l'opzione \texttt{-perm} (filtro in base ai permessi):
+\begin{center}
+    \texttt{find / -perm /u+s 2>/dev/null}
+\end{center}
+
+Per impostare a 1 il bit SETGID di un file si utilizza il comando:
+
+\begin{center}
+    \texttt{chmod g+s file}
+\end{center}
+
+Per stabilire se il bit SETGID è posto a 1 per un determinato file invochiamo \texttt{ls -l nomefile} e vediamo se è presente il permesso \texttt{s} e se il file è evidenziato in giallo. Per individuare tutti i file con il bit SETGID acceso possiamo utilizzare il comando \texttt{find} con l'opzione \texttt{-perm} (filtro in base ai permessi):
+\begin{center}
+    \texttt{find / -perm /g+s 2>/dev/null}
+\end{center}
+
+\section{Utenti e gruppi}
+Nei SO UNIX il descrittore di un processo memorizza una prima coppia di credenziali:
+\begin{itemize}
+    \item Real User ID (RUID) è l'UID di chi ha lanciato il comando
+    \item Real Group ID (RGID) è il GID di chi ha lanciato il comando
+\end{itemize}
+Inoltre viene memorizzata una seconda coppia di credenziali:
+\begin{itemize}
+    \item Effective User ID (EUID)
+    \item Effective Group ID (EGID)
+\end{itemize}
+In condizioni normali (ovvero con bit SETUID e SETGID disattivati), abbiamo che EUID è l'UID di chi ha lanciato il comando, mentre EGID è il GID di chi ha lanciato il comando. Se invece i bit SETUID e SETGID sono attivati, abbiamo che EUID è l'UID di chi possiede il file, mentre EGID è il GID di chi possiede il file. Quindi chi lancia il comando può assumere i privilegi di chi possiede il file. Se non sono presenti altre contromisure, un processo con SETUID/SETGID attivi ottiene i pieni poteri dell'utente privilegiato. Se l'utente privilegiato è root, il processo può fare di tutto. Inoltre il privilegio ottenuto è mantenuto per l'intera esecuzione. 
+
+\section{Debolezze}
+Per capire meglio questo concetto osserviamo il grafico seguente:
+
+\begin{figure}[hbpt!]
+    \centering
+    \includegraphics[width=0.7\textwidth]{./Images/cap4/4.1.png}
+\end{figure}
+\FloatBarrier
+
+L'elevazione automatica dei privilegi è una funzionalità interessante offerta da UNIX, tuttavia il conferimento dei pieni poteri di root quando non sono strettamente necessari è una debolezza. Anche il mantenimento dei privilegi per tutta la durata dell'esecuzione è una debolezza. Non si tratta di una vulnerabilità perché le debolezze non sono sfruttabili da sole. Se un programma è scritto in modo corretto, la sola elevazione automatica non può dare alcun vantaggio a un attaccante. Tuttavia se unita ad altre debolezze, l'elevazione automatica dei privilegi può avere conseguenze devastanti per la sicurezza di un programma.
+
+Se l'applicazione non svolge operazioni critiche, può decidere di abbassare i propri privilegi a quelli dell'utente che ha eseguito il comando (\textit{privilege drop}); quando invece l'operazione svolge operazioni critiche, ripristina nuovamente i privilegi ottenuti con l'elevazione automatica (\textit{privilege restore}). Questo lo vediamo nel grafico seguente:
+
+\begin{figure}[hbpt!]
+    \centering
+    \includegraphics[width=0.7\textwidth]{./Images/cap4/4.2.png}
+\end{figure}
+\FloatBarrier
+
+L'abbassamento ed il ripristino dei privilegi di un programma si implementano in modo diverso in base al SO. In particolare vediamo in diversi sistemi come si comporta:
+
+\section{Primissimi sistemi UNIX}
+Nei primissini sistemi UNIX sono previste solo due tipologie di user e group ID: RUID (RGID) e EUID (EGID). I valori RUID e EUID possono essere determinate mediante le chiamate di sistema \texttt{getuid()}, che restituisce il RUID del processo invocante, e \texttt{geteuid()}, che restituisce l'EUID del processo invocante. Un esempio di utilizzo è mostrato nel file seguente:
+\begin{mdframed}[backgroundcolor=white!20,shadow=false]
+\textbf{getuid\_unix.c}
+
+\begin{minted}[baselinestretch=1.0]{c}
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(int argc, char *argv[]) {
+
+	int uid = getuid();
+
+	printf("UID reale del processo = %d\n", uid);
+	exit(EXIT_SUCCESS);
+}
+
+\end{minted}
+\end{mdframed}
+
+Compiliamo \texttt{getuid\_unix.c}:
+\begin{center}
+    \texttt{gcc –o getuid\_unix getuid\_unix.c}
+\end{center}
+Dopodichè eseguiamolo come utente normale:
+\begin{center}
+    \texttt{./getuid\_unix}
+\end{center}
+Viene stampato:
+
+\texttt{RUID del processo = 1000}
+
+A questo punto eseguiamo una seconda volta \texttt{getuid\_unix.c} come root:
+
+\begin{center}
+    \texttt{sudo ./getuid\_unix}
+\end{center}
+
+Viene stampato:
+
+\texttt{RUID del processo = 0}
+
+Allo stesso modo vediamo quest'altro codice:
+
+\begin{mdframed}[backgroundcolor=white!20,shadow=false]
+\textbf{geteuid\_unix.c}
+
+\begin{minted}[baselinestretch=1.0]{c}
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(int argc, char *argv[]) {
+
+	int euid = geteuid();
+
+	printf("EUID del processo = %d\n", euid);
+	exit(0);
+}
+
+\end{minted}
+\end{mdframed}
+Compiliamo \texttt{geteuid\_unix.c}:
+\begin{center}
+    \texttt{gcc –o geteuid\_unix geteuid\_unix.c}
+\end{center}
+Eseguiamo una prima volta \texttt{geteuid\_unix} come utente normale:
+
+\begin{center}
+    \texttt{./geteuid\_unix}
+\end{center}
+Viene stampato:
+
+\texttt{EUID del processo = 1000}
+
+Eseguiamo una seconda volta \texttt{geteuid\_unix} come root:
+
+\begin{center}
+    \texttt{sudo ./geteuid\_unix}
+\end{center}
+Viene stampato:
+
+\texttt{EUID del processo = 0}
+
+Impostiamo adesso il proprietario di geteuid\_unix a root:
+\begin{center}
+    \texttt{sudo chown root geteuid\_unix}
+\end{center}
+Dopodiché impostiamo il bit SETUID per il file \texttt{geteuid\_unix}:
+
+\begin{center}
+    \texttt{sudo chmod u+s geteuid\_unix}
+\end{center}
+
+Eseguendo stavolta \texttt{geteuid\_unix} come utente normale, notiamo che nonostante il processo viene stampato dall'utente viene stampato:
+
+\texttt{EUID del processo = 0}
+
+La presenza del bit SETUID = 1 ha consentito l'esecuzione del programma con i privilegi del proprietario del file (root). È anche possibile cambiare il valore dell'EUID di un processo. La chiamata di sistema \texttt{setuid(uid)} imposta l'EUID del processo al valore \texttt{uid} in input. Ad esempio, \texttt{setuid(0)} imposta EUID a 0 (root), e in caso di errore l'output della chiamata è -1. Un esempio di utilizzo è mostrato nel file di seguito:
+
+\begin{mdframed}[backgroundcolor=white!20,shadow=false]
+\textbf{setuid\_unix.c}
+
+\begin{minted}[baselinestretch=1.0]{c}
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(int argc, char *argv[]) {
+
+	int uid = getuid();
+	int euid = geteuid();
+
+	printf("Prima di elevazione a root: UID reale del processo = %d\n", uid);
+	printf("Prima di elevazione a root: UID effettivo del processo = %d\n", euid);
+	if (setuid(0) == -1) {
+		printf("Non sono riuscito ad impostare EUID = 0 (root).\n");
+		exit(1);
+	}
+
+	uid = getuid();
+	euid = geteuid();
+	printf("Dopo elevazione a root: UID reale del processo = %d\n", uid);
+	printf("Dopo elevazione a root: UID effettivo del processo = %d\n", euid);
+	if (setuid(1) == -1) {
+		printf("Non sono riuscito ad impostare EUID = 1 (bin).\n");
+		exit(1);
+	}
+
+	uid = getuid();
+	euid = geteuid();
+	printf("Dopo elevazione a bin: UID reale del processo = %d\n", uid);
+	printf("Dopo elevazione a bin: UID effettivo del processo = %d\n", euid);
+	exit(0);
+}
+
+\end{minted}
+
+\end{mdframed}
+Compiliamo ed eseguiamo il file come utente normale:
+\begin{center}
+    gcc –o setuid\_unix setuid\_unix.c
+    
+    ./setuid\_unix
+
+\end{center}
+Viene stampato:
+
+\texttt{Prima di elevazione a root:
+RUID=1000 e EUID=1000}
+
+\texttt{Non sono riuscito a impostare
+EUID=0}
+
+A questo punto impostiamo il proprietario di setuid\_unix a root:
+\begin{center}
+    \texttt{sudo chown root setuid\_unix}
+\end{center}
+
+E poi impostiamo il bit SETUID per setuid\_unix:
+\begin{center}
+    \texttt{sudo chmod u+s setuid\_unix}
+\end{center}
+
+Eseguiamo \texttt{setuid\_unix} una seconda volta:
+\begin{center}
+    ./setuid\_unix
+\end{center}
+
+Viene stampato:
+
+\texttt{Prima di elevazione a root:
+RUID=1000 e EUID=0}
+
+\texttt{Dopo elevazione a root:
+RUID=0 e EIUD=0}
+
+Per effettuare un abbassamento dei privilegi basta eseguire il comando \texttt{setuid(getuid());}. In questo modo infatti l'EUID del processo viene posto uguale al RUID. Un esempio di utilizzo è illustrato nel file seguente:
+
+\begin{mdframed}[backgroundcolor=white!20,shadow=false]
+\textbf{drop\_priv\_unix.c}
+
+\begin{minted}[baselinestretch=1.0]{c}
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(int argc, char *argv[]) {
+
+	int uid, euid;
+
+	uid = getuid();
+	euid = geteuid();
+	printf("Prima dell'abbassamento privilegi: UID reale del processo = %d\n", uid);
+	printf("Prima dell'abbassamento privilegi: UID effettivo del processo = %d\n", euid);
+	if (setuid(uid) == -1) {
+		printf("Non sono riuscito ad abbassare i privilegi.\n");
+		exit(1);
+	}
+
+	uid = getuid();
+	euid = geteuid();
+	printf("Dopo l'abbassamento privilegi: UID reale del processo = %d\n", uid);
+	printf("Dopo l'abbassamento privilegi: UID effettivo del processo = %d\n", euid);
+	exit(0);
+}
+
+\end{minted}
+
+\end{mdframed}
+
+Si compili \texttt{drop\_priv\_unix.c}:
+\begin{center}
+    \texttt{gcc –o drop\_priv\_unix drop\_priv\_unix.c}
+\end{center}
+
+Si esegua \texttt{drop\_priv\_unix} una prima volta:
+\begin{center}
+    \texttt{./drop\_priv\_unix}
+\end{center}
+
+Viene stampato:
+
+\texttt{Prima dell’abbassamento dei privilegi:
+ RUID=1000 e EUID=1000}
+ 
+ \texttt{Dopo l’abbassamento dei privilegi:
+ RUID=1000 e EUID=1000}
+ 
+Impostiamo il proprietario a root:
+\begin{center}
+    \texttt{sudo chown root drop\_priv\_unix}
+\end{center}
+E poi impostiamo il bit SETUID:
+\begin{center}
+    \texttt{sudo chmod u+s drop\_priv\_unix}
+\end{center}
+Eseguiamo \texttt{drop\_priv\_unix} una seconda volta:
+\begin{center}
+    \texttt{./drop\_priv\_unix}
+\end{center}
+
+Viene stampato:
+
+\texttt{Prima dell’abbassamento dei privilegi:
+ RUID=1000 e EUID=0}
+ 
+ \texttt{ Dopo l’abbassamento dei privilegi:
+ RUID=1000 e EUID=1000}
+ 
+\vspace{5mm}
+ 
+ 
+Nei primissimi sistemi UNIX non è possibile ripristinare i privilegi elevati dopo averli abbassati. Supponiamo che un processo parta con SETUID root e abbassi i suoi privilegi con \texttt{setuid(getuid())}, dopodiché invochi \texttt{setuid(0)} per ripristinare i privilegi di root. Viene generato un errore. Un esempio di utilizzo è illustrato nel seguente file:
+
+\begin{mdframed}[backgroundcolor=white!20,shadow=false]
+\textbf{drop\_rest\_unix.c}
+
+\begin{minted}[baselinestretch=1.0]{c}
+#include <unistd.h>
+#include <sys/types.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(int argc, char *argv[]) {
+
+	int uid, euid;
+	int priv_uid;
+
+	uid = getuid();
+	euid = geteuid();
+	priv_uid = euid; /* nell'ipotesi che il binario sia SETUID root */
+	printf("Prima dell'abbassamento privilegi: UID reale del processo = %d\n", uid);
+	printf("Prima dell'abbassamento privilegi: UID effettivo del processo = %d\n", euid);
+	if (setuid(uid) == -1) {
+		printf("Non sono riuscito ad abbassare i privilegi.\n");
+		exit(1);
+	}
+
+	uid = getuid();
+	euid = geteuid();
+	printf("Dopo l'abbassamento privilegi: UID reale del processo = %d\n", uid);
+	printf("Dopo l'abbassamento privilegi: UID effettivo del processo = %d\n", euid);
+	if (setuid(priv_uid) == -1) {
+		printf("Non sono riuscito a ripristinare i privilegi.\n");
+		exit(1);
+	}
+
+	uid = getuid();
+	euid = geteuid();
+	printf("Dopo il ripristino privilegi: UID reale del processo = %d\n", uid);
+	printf("Dopo il ripristino privilegi: UID effettivo del processo = %d\n", euid);
+	exit(0);
+}
+
+\end{minted}
+
+\end{mdframed}
+
+Compiliamo \texttt{drop\_rest\_unix.c}:
+
+\begin{center}
+    \texttt{gcc -o drop\_rest\_unix drop\_rest\_unix.c}
+\end{center}
+Eseguiamo il file una prima volta:
+\begin{center}
+    \texttt{./drop\_rest\_unix}
+\end{center}
+Viene stampato:
+
+\texttt{Prima dell’abbassamento dei privilegi:
+ RUID=1000 e EUID=0}
+ 
+ \texttt{Dopo l’abbassamento dei privilegi:
+ RUID=1000 e EUID=1000}
+ 
+\texttt{Dopo il ripristino dei privilegi:
+ RUID=1000 e EUID=1000}
+ 
+A questo punto impostiamo il creatore a root:
+\begin{center}
+    \texttt{sudo chown root drop\_rest\_unix}
+\end{center}
+Dopodiché impostiamo il bit SETUID:
+\begin{center}
+    \texttt{sudo chmod u+s drop\_rest\_unix}
+\end{center}
+Eseguiamo il file una seconda volta:
+\begin{center}
+    \texttt{./drop\_rest\_unix}
+\end{center}
+Viene stampato:
+
+\texttt{Prima dell’abbassamento dei privilegi:
+ RUID=1000 e EUID=0}
+ 
+ \texttt{Dopo l’abbassamento dei privilegi:
+ RUID=1000 e EUID=1000}
+ 
+ \texttt{Non sono riuscito a ripristinare i
+privilegi}
+
+\section{Sistemi UNIX System V}
+In questi sistemi viene introdotta una nuova chiamata di sistema per cambiare il valore dell'EUID di un processo: \texttt{seteuid(uid)} imposta l'EUID del processo al valore \texttt{uid} in input. Per effettuare un abbassamento dei privilegi basta eseguire il comando \texttt{seteuid(getuid());}.
+
+Supponiamo che un processo parta con SETUID root e abbassi i suoi privilegi con \texttt{seteuid(getuid())}, dopodiché invochi \texttt{seteuid(0)}. Allora questa chiamata termina correttamente perché root è l'utente effettivo, infatti imposta l'EUID al valore 0 (root). In questo caso il ripristino dei privilegi funziona. Abbiamo quindi due differenti modalità di abbassamento dei privilegi:
+\begin{itemize}
+    \item permanente, con \texttt{setuid(getuid());}
+    \item temporaneo, con \texttt{seteuid(getuid());}
+\end{itemize}
+Nell'ipotesi che un processo parta SETUID (tipicamente root) e abbassi i suoi privilegi con \texttt{seteuid(id)}, è possibile ripristinare i privilegi con la chiamata \texttt{seteuid(privileged\_id)}, dove \texttt{privileged\_id} è lo user ID dell'utente privilegiato di partenza (tipicamente root).
+
+\section{Sistemi UNIX BSD}
+Nei sistemi BSD viene introdotta una chiamata di sistema per impostare contemporaneamente RUID e EUID:
+\begin{center}
+    \texttt{setreuid(uid,euid)}
+\end{center}
+Per lasciare inalterato uno dei due valori basta fornire in input -1. L'abbassamento permanente dei privilegi si ottiene impostando entrambi i parametri ad un valore non privilegiato: \texttt{setreuid(uid,uid)}. In seguito i parametri RUID e EUID non potranno che assumere il valore \texttt{uid}. Il ripristino a root è impossibile. L'abbassamento temporaneo dei privilegi si ottiene con la chiamata:
+\begin{center}
+    \texttt{setreuid(geteuid(), getuid());}
+\end{center}
+RUID e EUID sono scambiati. Dopo lo scambio RUID è da utente privilegiato, mentre EUID è da utente non privilegiato. Il ripristino dei privilegi si ottiene ancora con la chiamata:
+\begin{center}
+    \texttt{setreuid(geteuid(), getuid());}
+\end{center}
+Dopo lo scambio RUID è da utente non privilegiato, EUID è da utente privilegiato. Il programma \texttt{drop\_rest\_bsd.c} effettua l'abbassamento e il ripristino dei privilegi.
+
+\begin{mdframed}[backgroundcolor=white!20,shadow=false]
+\textbf{drop\_rest\_bsd.c}
+\begin{minted}[baselinestretch=1.0]{c}
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(int argc, char *argv[]) {
+
+	uid_t uid = getuid();
+	uid_t euid = geteuid();
+
+	printf("Prima di setreuid(euid, uid): UID reale del processo = %d\n", uid);
+	printf("Prima di setreuid(euid, uid): UID effettivo del processo = %d\n", euid);
+	if (setreuid(euid, uid) == -1) {
+		printf("Non sono riuscito a scambiare UID <-> EUID.\n");
+		exit(1);
+	}
+
+	uid = getuid();
+	euid = geteuid();
+	printf("Dopo setreuid(euid, uid): UID reale del processo = %d\n", uid);
+	printf("Dopo setreuid(euid, uid): UID effettivo del processo = %d\n", euid);
+
+	if (setreuid(euid, uid) == -1) {
+		printf("Non sono riuscito a scambiare UID <-> EUID.\n");
+		exit(1);
+	}
+
+	uid = getuid();
+	euid = geteuid();
+	printf("Dopo setreuid(euid, uid): UID reale del processo = %d\n", uid);
+	printf("Dopo setreuid(euid, uid): UID effettivo del processo = %d\n", euid);
+}
+
+\end{minted}
+\end{mdframed}
+Compiliamo ed eseguiamo \texttt{drop\_rest\_bsd.c}:
+\begin{center}
+    \texttt{gcc –o drop\_rest\_bsd drop\_rest\_bsd.c}
+    
+    \texttt{./drop\_rest\_bsd}
+\end{center}
+Viene stampato:
+\texttt{Prima di setreuid(euid,uid): RUID = 1000}
+
+\texttt{Prima di setreuid(euid,uid): EUID = 1000}
+
+\texttt{Dopo setreuid(euid,uid): RUID = 1000 }
+
+\texttt{Dopo setreuid(euid,uid): EUID = 1000}
+
+\texttt{Dopo setreuid(euid,uid): RUID = 1000 }
+
+\texttt{Dopo setreuid(euid,uid): EUID = 1000}
+
+Impostiamo il creatore a root:
+\begin{center}
+    \texttt{sudo chown root drop\_rest\_bsd}
+\end{center}
+Impostiamo il bit SETUID:
+\begin{center}
+    \texttt{sudo chmod u+s drop\_rest\_bsd
+}
+\end{center}
+Eseguiamo il file una seconda volta. Viene stampato:
+
+\texttt{Prima di setreuid(euid,uid): RUID = 1000}
+
+\texttt{Prima di setreuid(euid,uid): EUID = 0}
+
+\texttt{Dopo setreuid(euid,uid): RUID = 0}
+
+\texttt{Dopo setreuid(euid,uid): EUID = 1000}
+
+\texttt{Dopo setreuid(euid,uid): RUID = 1000}
+
+\texttt{Dopo setreuid(euid,uid): EUID = 0}
+
+Nel processo che esegue \texttt{drop\_rest\_bsd.c} subito dopo l'abbassamento dei privilegi si ha RUID=0 (root) e EUID \(\neq\) 0 (utente normale).
+
+\vspace{5mm}
+
+Si consideri ora il programma \texttt{d\_r\_open\_bsd.c}. Il programma prova ad aprire il file \texttt{/etc/shadow} subito dopo l'abbassamento dei privilegi. Il file \texttt{/etc/shadow} è di proprietà di root ed ha i seguenti permessi: \texttt{rw-------}, quindi è leggibile e scrivibile solo da root (a differenza del file \texttt{/etc/passwd} che ha permessi \texttt{rw-r--r--} ed è leggibile da tutti. Il file \texttt{/etc/shadow} contiene le password cifrate degli utenti, corrispondenti alle \texttt{x} in ciascuna riga di \texttt{/etc/passwd}. Si compili e si esegua il programma prima da utente normale e poi SETUID root. In entrambi i casi dopo l'abbassamento dei privilegi (anche con RUID=0) non è possibile leggere \texttt{/etc/shadow}.
+
+\begin{mdframed}[backgroundcolor=white!20,shadow=false]
+\textbf{d\_r\_open\_bsd.c}
+\begin{minted}[baselinestretch=1.0]{c}
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+
+int main(int argc, char *argv[]) {
+
+	uid_t uid = getuid();
+	uid_t euid = geteuid();
+
+	printf("Prima di setreuid(euid, uid): UID reale del processo = %d\n", uid);
+	printf("Prima di setreuid(euid, uid): UID effettivo del processo = %d\n", euid);
+	if (setreuid(euid, uid) == -1) {
+		printf("Non sono riuscito a scambiare UID <-> EUID.\n");
+		exit(1);
+	}
+
+	uid = getuid();
+	euid = geteuid();
+	printf("Dopo setreuid(euid, uid): UID reale del processo = %d\n", uid);
+	printf("Dopo setreuid(euid, uid): UID effettivo del processo = %d\n", euid);
+
+	if (open("/etc/shadow", O_RDONLY) == -1)
+		printf("Non sono riuscito ad aprire /etc/shadow.\n");
+	else
+		printf("Sono riuscito ad aprire /etc/shadow.\n");
+
+	if (setreuid(euid, uid) == -1) {
+		printf("Non sono riuscito a scambiare UID <-> EUID.\n");
+		exit(1);
+	}
+
+	uid = getuid();
+	euid = geteuid();
+	printf("Dopo setreuid(euid, uid): UID reale del processo = %d\n", uid);
+	printf("Dopo setreuid(euid, uid): UID effettivo del processo = %d\n", euid);
+
+	
+}
+\end{minted}
+\end{mdframed}
+Si compili ed esegui il programma. Viene stampato:
+
+\texttt{Prima di setreuid(euid,uid: RUID = 1000}
+
+\texttt{Prima di setreuid(euid,uid): EUID = 1000
+}
+
+\texttt{Dopo setreuid(euid,uid): RUID = 1000 }
+
+\texttt{Dopo setreuid(euid,uid): EUID = 1000}
+
+\texttt{Non sono riuscito ad aprire /etc/shadow}
+
+\texttt{Dopo setreuid(euid,uid): RUID = 1000}
+
+\texttt{Dopo setreuid(euid,uid): EUID = 1000}
+
+Si imposti il creatore a root e si imposti il bit SETUID:
+
+\begin{center}
+    \texttt{sudo chown root d\_r\_open\_bsd}
+    
+    \texttt{sudo chmod u+s d\_r\_open\_bsd}
+\end{center}
+Si esegua una seconda volta il programma. Viene stampato:
+
+\texttt{Prima di setreuid(euid,uid: RUID = 1000}
+
+\texttt{Prima di setreuid(euid,uid): EUID = 0}
+
+\texttt{Dopo setreuid(euid,uid): RUID = 0 }
+
+\texttt{Dopo setreuid(euid,uid): EUID = 1000}
+
+\texttt{Non sono riuscito ad aprire /etc/shadow}
+
+\texttt{Dopo setreuid(euid,uid): RUID = 1000}
+
+\texttt{Dopo setreuid(euid,uid): EUID = 0}
+
+Un limite dei sistemi BSD è che non gestiscono una terza coppia di credenziali: Saved User ID (SUID) e Saved Group ID (SGID). Quando un processo parte, tali credenziali contengono una copia di quelle effettive: SUID=EUID, SGID=EGID. Tale limite viene superato nei sistemi POSIX.
+
+\section{Sistemi POSIX}
+POSIX (Portable Operating System Interface) è
+una famiglia di standard specificati dalla IEEE
+Computer Society per mantenere la
+compatibilità tra diversi SO. Rilasciato nel 1988 con il nome IEEE 103 o
+ISO/IEC 9945, lo standard definisce API di sistema, interfaccia da linea di comando e applicazioni di base. Nei sistemi POSIX la chiamata di sistema
+\texttt{setreuid(uid,uid)} è stata deprecata e
+viene sostituita da \texttt{setuid(uid)}. Tale chiamata imposta anche il SUID ma POSIX non specifica meccanismi per consentire
+la lettura del SUID. I dettagli di tale gestione sono demandati allo
+specifico SO. In seguito, vedremo come leggere il SUID nel SO
+GNU/Linux. Anche nei sistemi POSIX abbiamo due
+differenti modalità di abbassamento dei
+privilegi:
+\begin{itemize}
+    \item permanente, con \texttt{setuid(getuid());}
+    \item temporaneo, con \texttt{seteuid(getuid());}
+\end{itemize}
+
+
+\section{Sistemi UNIX moderni}
+I SO GNU/Linux implementano la LSB
+(Linux Standards Base). Si tratta di una evoluzione della SUS (Single
+UNIX Specification), che è l’evoluzione attuale
+dello standard POSIX. LSB sostituisce alcune funzionalità errate od
+insicure di POSIX/SUS con meccanismi propri. La chiamata di sistema
+\texttt{getresuid(uid,euid,suid)} consente di
+recuperare tutti gli user ID del processo
+invocante. La chiamata di sistema
+\texttt{setresuid(uid,euid,suid)} consente di
+impostare tutti gli user ID del processo
+invocante. L’abbassamento permanente dei privilegi si
+ottiene impostando tutti i parametri ad un
+valore non privilegiato tramite \texttt{setresuid(uid,uid,uid)}. In seguito, i parametri RUID, EUID e SUID
+non potranno che assumere il valore uid. Il ripristino a root è impossibile Un esempio di utilizzo è nel seguente programma:
+
+
+\begin{mdframed}[backgroundcolor=white!20,shadow=false]
+\textbf{drop\_priv\_gnulinux.c}
+\begin{minted}[baselinestretch=1.0]{c}
+#include <unistd.h>
+#include <sys/types.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(int argc, char *argv[]) {
+
+	uid_t uid, euid, suid;
+
+	if (getresuid(&uid, &euid, &suid) == -1) {
+		printf("Non sono riuscito ad ottenere uid, euid, ruid.\n");
+		exit(EXIT_FAILURE);
+	}
+	printf("Prima dell'abbassamento privilegi: UID reale del processo = %d\n", uid);
+	printf("Prima dell'abbassamento privilegi: UID effettivo del processo = %d\n", euid);
+	printf("Prima dell'abbassamento privilegi: UID salvato del processo = %d\n", suid);
+	if (setresuid(uid, uid, uid) == -1) {
+		printf("Non sono riuscito ad abbassare i privilegi.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	if (getresuid(&uid, &euid, &suid) == -1) {
+		printf("Non sono riuscito ad ottenere uid, euid, ruid.\n");
+		exit(EXIT_FAILURE);
+	}
+	printf("Dopo l'abbassamento privilegi: UID reale del processo = %d\n", uid);
+	printf("Dopo l'abbassamento privilegi: UID effettivo del processo = %d\n", euid);
+	printf("Dopo l'abbassamento privilegi: UID salvato del processo = %d\n", suid);
+	if (setresuid(-1, 0, -1) == -1) {
+		printf("Non sono riuscito a ripristinare i privilegi.\n");
+		exit(1);
+	}
+
+	if (getresuid(&uid, &euid, &suid) == -1) {
+		printf("Non sono riuscito ad ottenere uid, euid, ruid.\n");
+		exit(EXIT_FAILURE);
+	}
+	printf("Dopo il ripristino privilegi: UID reale del processo = %d\n", uid);
+	printf("Dopo il ripristino privilegi: UID effettivo del processo = %d\n", euid);
+	printf("Dopo il ripristino privilegi: UID salvato del processo = %d\n", suid);
+}
+
+\end{minted}
+\end{mdframed}
+Compiliamo ed eseguiamo il programma una prima volta. Viene stampato:
+
+\texttt{Prima dell’abbassamento: RUID = 1000}
+
+\texttt{Prima dell’abbassamento: EUID = 1000}
+
+\texttt{Prima dell’abbassamento: SUID = 1000}
+
+\texttt{Dopo l’abbassamento: RUID = 1000}
+
+\texttt{Dopo l’abbassamento: EUID = 1000
+}
+
+\texttt{Dopo l’abbassamento: SUID = 1000}
+
+\texttt{Non sono riuscito a ripristinare i privilegi}
+
+Impostiamo il creatore a root:
+\begin{center}
+    \texttt{sudo chown root drop\_priv\_gnulinux}
+\end{center}
+E impostiamo il bit SETUID:
+\begin{center}
+    \texttt{sudo chmod u+s drop\_priv\_gnulinux}
+\end{center}
+Eseguiamo il programma una seconda volta. Viene stampato:
+
+\texttt{Prima dell’abbassamento: RUID = 1000}
+
+\texttt{Prima dell’abbassamento: EUID = 0}
+
+\texttt{Prima dell’abbassamento: SUID = 0}
+
+\texttt{Dopo l’abbassamento: RUID = 1000 
+}
+
+\texttt{Dopo l’abbassamento: EUID = 1000}
+
+\texttt{Dopo l’abbassamento: SUID = 1000}
+
+\texttt{Non sono riuscito a ripristinare i privilegi}
+
+L'abbassamento temporaneo dei privilegi si ottiene impostando EUID ad un valore non privilegiato, tramite
+
+\texttt{setresuid(-1,geteuid(),-1)}. In questo modo si preserva lo user ID salvato e si può effettuare il ripristino in seguito. Nota: \texttt{setresuid(-1,uid,-1)=seteuid(uid)}.
+
+Il ripristino temporaneo dei privilegi si ottiene impostando EUID ad un valore privilegiato, tramite
+
+\texttt{setresuid(-1,privileged\_ID,-1)}, dove \texttt{privileged\_id} è lo user ID dell’utente
+ privilegiato ottenuto in partenza
+ (tipicamente root). Il programma \texttt{drop\_rest\_gnulinux.c}
+implementa la strategia vista. Lo si esegua una prima volta da utente normale
+e successivamente SETUID root.
+
+\begin{mdframed}[backgroundcolor=white!20,shadow=false]
+\textbf{drop\_rest\_gnulinux.c}
+\begin{minted}[baselinestretch=1.0]{c}
+#include <unistd.h>
+#include <sys/types.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(int argc, char *argv[]) {
+
+	uid_t uid, euid, suid;
+	uid_t priv_uid;
+
+	if (getresuid(&uid, &euid, &suid) == -1) {
+		printf("Non sono riuscito ad ottenere uid, euid, ruid.\n");
+		exit(EXIT_FAILURE);
+	}
+	priv_uid = euid; /* serve per il tentativo di ripristino privilegi */
+	printf("Prima dell'abbassamento privilegi: UID reale del processo = %d\n", uid);
+	printf("Prima dell'abbassamento privilegi: UID effettivo del processo = %d\n", euid);
+	printf("Prima dell'abbassamento privilegi: UID salvato del processo = %d\n", suid);
+	if (setresuid(-1, uid, -1) == -1) {
+		printf("Non sono riuscito ad abbassare i privilegi.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	if (getresuid(&uid, &euid, &suid) == -1) {
+		printf("Non sono riuscito ad ottenere uid, euid, ruid.\n");
+		exit(EXIT_FAILURE);
+	}
+	printf("Dopo l'abbassamento privilegi: UID reale del processo = %d\n", uid);
+	printf("Dopo l'abbassamento privilegi: UID effettivo del processo = %d\n", euid);
+	printf("Dopo l'abbassamento privilegi: UID salvato del processo = %d\n", suid);
+	if (setresuid(-1, priv_uid, -1) == -1) {
+		printf("Non sono riuscito a ripristinare i privilegi.\n");
+		exit(1);
+	}
+
+	if (getresuid(&uid, &euid, &suid) == -1) {
+		printf("Non sono riuscito ad ottenere uid, euid, ruid.\n");
+		exit(EXIT_FAILURE);
+	}
+	printf("Dopo il ripristino privilegi: UID reale del processo = %d\n", uid);
+	printf("Dopo il ripristino privilegi: UID effettivo del processo = %d\n", euid);
+	printf("Dopo il ripristino privilegi: UID salvato del processo = %d\n", suid);
+}
+
+\end{minted}
+\end{mdframed}
+Compiliamo ed eseguiamo il programma una prima volta. Viene stampato:
+
+\texttt{Prima dell’abbassamento: RUID = 1000}
+
+\texttt{Prima dell’abbassamento: EUID = 1000}
+
+\texttt{Prima dell’abbassamento: SUID = 1000}
+
+\texttt{Dopo l’abbassamento: RUID = 1000}
+
+\texttt{Dopo l’abbassamento: EUID = 1000}
+
+\texttt{Dopo l’abbassamento: SUID = 1000}
+
+\texttt{Dopo il ripristino: RUID = 1000 }
+
+\texttt{Dopo il ripristino: EUID = 1000}
+
+\texttt{Dopo il ripristino: SUID = 1000}
+
+Impostiamo il creatore a root:
+\begin{center}
+    \texttt{sudo chown root drop\_rest\_gnulinux}
+\end{center}
+Impostiamo il bit SETUID:
+\begin{center}
+    \texttt{sudo chmod u+s drop\_rest\_gnulinux}
+\end{center}
+Eseguiamo il programma una seconda volta. Viene stampato:
+
+\texttt{Prima dell’abbassamento: RUID = 1000}
+
+\texttt{Prima dell’abbassamento: EUID = 0}
+
+\texttt{Prima dell’abbassamento: SUID = 0}
+
+\texttt{Dopo l’abbassamento: RUID = 1000}
+
+\texttt{Dopo l’abbassamento: EUID = 1000}
+
+\texttt{ Dopo l’abbassamento: SUID = 0}
+
+\texttt{Dopo il ripristino: RUID = 1000}
+
+\texttt{Dopo il ripristino: EUID = 0}
+
+\texttt{Dopo il ripristino: SUID = 0}
+
+
+\let\cleardoublepage\clearpage

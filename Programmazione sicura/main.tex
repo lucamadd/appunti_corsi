@@ -1,0 +1,129 @@
+\documentclass{book}
+\usepackage[margin=2cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[italian]{babel}
+\usepackage{tgpagella}
+\usepackage{graphicx}
+\usepackage{comment}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{mdframed}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{enumerate}
+\usepackage{textcomp} % For TS1.
+\usepackage{multicol}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{amssymb} 
+\usepackage{listings}
+\lstset{basicstyle=\ttfamily, basewidth=0.5em,breaklines=true}
+\usepackage{minted}
+\usemintedstyle{vs}
+% per i link
+\usepackage{hyperref}
+\hypersetup{
+	colorlinks   = true,    % Colours links instead of ugly boxes
+	urlcolor     = blue,    % Colour for external hyperlinks
+	linkcolor    = black,    % Colour of internal links
+	citecolor    = red      % Colour of citations
+}
+\usepackage{fancyhdr}
+\usepackage{multirow}
+\emergencystretch 5em%
+\usepackage{colortbl}
+\usepackage{csquotes}
+\usepackage[bottom]{footmisc}
+\usepackage{svg}
+\svgpath{{./Images/}}
+\usepackage{placeins}
+\pagestyle{fancy}
+\renewcommand{\chaptermark}[1]{%
+\markboth{\thechapter.\ #1}{}}
+\fancyhead[LE,RO]{}
+
+\setlength{\parindent}{0em}
+
+\graphicspath{./Images}
+
+
+\title{
+\includegraphics[width=30.5em]{Images/logo.jpg} \textbf{Appunti del corso di Programmazione Sicura}}
+\author{Luca Maddaluno}
+\date{A.A. 2021/2022}
+
+
+\begin{document}
+
+
+
+\let\cleardoublepage\clearpage
+\maketitle
+
+\leavevmode\thispagestyle{empty}\newpage %blank page
+
+\tableofcontents
+\let\cleardoublepage\clearpage
+
+
+\include{cap1}
+\include{cap2}
+\include{cap3}
+\include{cap4}
+\include{cap5}
+\include{cap6}
+\include{cap7}
+
+
+
+\end{document}
+
+\begin{comment}
+
+% ---------------------- FIGURE ---------------------
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=6cm]{./Images/cap1/2.3.comunicazione.png}
+    \caption{Esempio di comunicazione}
+    \label{fig:image2.3}
+\end{figure}
+
+\begin{figure}[hbpt!]
+    \centering
+    \includegraphics[width=4cm]{./Images/2.3.png}
+\end{figure}
+\FloatBarrier
+
+% --------------- FRAME GRIGIO -----------------------
+\begin{mdframed}[backgroundcolor=gray!20,shadow=false]
+
+\end{mdframed}
+
+% --------------- FRAME BIANCO -----------------------
+\begin{mdframed}[backgroundcolor=white!20,shadow=false]
+
+\end{mdframed}
+
+%IMMAGINE SVG
+
+\begin{figure}[htbp!]
+  \centering
+  \includesvg[inkscapelatex=true, width = 0.5\textwidth]{cap1/1.1}
+\end{figure}
+\FloatBarrier
+
+\end{comment}
+
+%%%%%%%%%%%%%%%%%%%%%%%%% TERMINALE
+\begin{mdframed}[backgroundcolor=white!20,shadow=false]
+\begin{lstlisting}
+$ 
+\end{lstlisting}
+\end{mdframed}
+
+%%%%%%%%%%%%%%%%%%%%%%%%% CODICE C
+\begin{mdframed}[backgroundcolor=white!20,shadow=false]
+\textbf{nomefile}
+\begin{minted}[baselinestretch=1.0]{c}
+\end{minted}
+\end{mdframed}
